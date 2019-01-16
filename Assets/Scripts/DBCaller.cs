@@ -12,8 +12,7 @@ public class DBCaller : MonoBehaviour
     void Start()
     {
         StartCoroutine(GetUtenti());
-
-
+        InsertUtente("ms53", "mas53");
     }
     public IEnumerator GetUtenti()
     {
@@ -40,6 +39,14 @@ public class DBCaller : MonoBehaviour
 
 
         }
+    }
+    public void InsertUtente(string user,string passw)
+    {
+        var form = new WWWForm();
+        form.AddField("nome", user);
+        form.AddField("passw", passw);
+        var www = new WWW("http://localhost:81/Infissy/UtentiInsert.php", form);
+       
     }
     public class Utente
     {

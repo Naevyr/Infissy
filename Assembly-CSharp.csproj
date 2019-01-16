@@ -70,6 +70,11 @@
     <Compile Include="Assets\Scripts\Giocatore.cs" />
     <Compile Include="Assets\Scripts\Player.cs" />
     <Compile Include="Assets\Scripts\Server.cs" />
+    <Compile Include="Assets\Scripts\UI\Card.cs" />
+    <Compile Include="Assets\Scripts\UI\CardDisplay.cs" />
+    <Compile Include="Assets\Scripts\UI\Deck.cs" />
+    <Compile Include="Assets\Scripts\UI\Drop.cs" />
+    <Compile Include="Assets\Scripts\UI\Movement.cs" />
     <Reference Include="UnityEditor.StandardEvents">
       <HintPath>C:/Users/marco/Documents/Infissy/Library/ScriptAssemblies/UnityEditor.StandardEvents.dll</HintPath>
     </Reference>
