@@ -3,21 +3,19 @@
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0942db7e8424e874ca0af89d390107b2, type: 3}
+  m_Script: {fileID: 11500000, guid: 2af7915a0a448c5459c2c44ce5468f39, type: 3}
   m_Name: amicoU
   m_EditorClassIdentifier: 
-  title: amico unita
-  img: {fileID: 10901, guid: 0000000000000000f000000000000000, type: 0}
-  absolute: 0
-  description: ddddd
-  country: dddd
-  rarity: ddd
-  friendly: 1
-  effect: ddd
-  progress: 0
-  type: 1
+  mainMenu: {fileID: 0}
+  serverMenu: {fileID: 0}
+  connectMenu: {fileID: 0}
+  serverPrefab: {fileID: 0}
+  clientPrefab: {fileID: 0}
+  DBCaller: {fileID: 0}
+  nameInput: {fileID: 0}

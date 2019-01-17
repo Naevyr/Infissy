@@ -24,12 +24,16 @@ namespace Assets
         {
             CmdGiocaCarta();
         }
+
+
+
         [Command]
         public void CmdGiocaCarta()
         {
             var card = Instantiate(cardPrefab);
             NetworkServer.Spawn(card);
         }
+
 
         public Stack<Carta> Mazzo
         {

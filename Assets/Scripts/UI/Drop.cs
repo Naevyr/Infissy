@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using UnityEngine.EventSystems;
-
+using InfissyProperties;
 public class Drop : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPointerExitHandler
 {
     public string zone ="";
@@ -22,10 +22,10 @@ public class Drop : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPointerE
         if (eventData.pointerDrag == null)
             return;
 
-        Movement d = eventData.pointerDrag.GetComponent<Movement>();
-        if (d != null)
+        Movement movement = eventData.pointerDrag.GetComponent<Movement>();
+        if (movement != null)
         {
-            d.placeholderParent = this.transform;
+            movement.placeholderParent = this.transform;
         }
     }
 
@@ -34,25 +34,25 @@ public class Drop : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPointerE
         if (eventData.pointerDrag == null)
             return;
 
-        Movement d = eventData.pointerDrag.GetComponent<Movement>();
-        if (d != null && d.placeholderParent == this.transform)
+        Movement movement = eventData.pointerDrag.GetComponent<Movement>();
+        if (movement != null && movement.placeholderParent == this.transform)
         {
-            d.placeholderParent = d.parentToReturnTo;
+            movement.placeholderParent = movement.parentToReturnTo;
         }
     }
 
     public void OnDrop(PointerEventData eventData)
     {
-        Movement d = eventData.pointerDrag.GetComponent<Movement>();
-        if (d != null && Card != null) 
+        Movement movement = eventData.pointerDrag.GetComponent<Movement>();
+        if (movement != null && Card != null) 
         {
-            if ((zone == "BuildingsF" && Card.friendly == 1 && Card.type == 2) || (zone == "UnitsF" && Card.friendly == 1 && Card.type == 1) ) {
-            d.parentToReturnTo = this.transform;
+            if ((zone == "BuildingsF" && Card.friendly == true && Card.type == CardProperties.CardType.Structure) || (zone == "UnitsF" && Card.friendly == true && Card.type == CardProperties.CardType.Attack) ) {
+            movement.parentToReturnTo = this.transform;
             }                  
             return;
             /*if (zone != "field")
                 return;
-            d.parentToReturnTo = this.transform;*/
+            movement.parentToReturnTo = this.transform;*/
         }
     }
 }

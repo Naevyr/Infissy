@@ -6,7 +6,6 @@ public class Deck : MonoBehaviour {
 
     public GameObject Card;
     public GameObject Hand;
-    public int x;
     List<Card> DeckList;
     List<Card> DeadList;    
     int rnd;
