@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-
+using Infissy.Framework;
 public class CardDisplay : MonoBehaviour {
     
     public Card card;
     public Text title;
-    public Image img;
+    public Sprite img;
     public Text absolute;
     public Text description;
     public string country;
@@ -19,9 +19,9 @@ public class CardDisplay : MonoBehaviour {
     
     void Start () {
 
-        title.text = card.title;
-        img.sprite = card.img;
-        absolute.text = card.absolute.ToString();
+        title.text = card.Title;
+        img.sprite = card.CardImage;
+        absolute.text = card.Absolute.ToString();
         description.text = card.description;
         country = card.country;
         rarity = card.rarity;

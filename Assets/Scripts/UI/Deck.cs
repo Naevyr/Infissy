@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using Infissy.Framework;
 public class Deck : MonoBehaviour {
 
     public GameObject Card;

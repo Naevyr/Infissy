@@ -3,132 +3,114 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net.Sockets;
 using UnityEngine;
+using System.Timers;
 
-public class Client : MonoBehaviour
+namespace Infissy.Networking{
+
+public class Client
 {
-    public string clientName;
-    public bool isHost;
 
-    private bool socketReady;
     private TcpClient socket;
     private NetworkStream stream;
     private StreamWriter writer;
     private StreamReader reader;
+    Timer timer = new Timer(0.5);
 
-    private List<GameClient> players = new List<GameClient>();
+    private delegate void RemoteMessage(string message);
+    public event RemoteMessage ReceivedMessageFromRemote;
 
-    private void Start()
+
+    public static Client InitializeClient(string ipServer)
     {
-        DontDestroyOnLoad(gameObject);
+        Client client = new Client();
+        
+        client.ConnectToServer(ipServer);
+
+
+        timer.Elapsed += CheckRemoteMessage();
+        
+        timer.AutoReset = true;
+        return client;
     }
-    public bool ConnectToServer(string host, int port)
-    {
-        if (socketReady)
-            return false;
+    
+
+    //Connect to server to get remote client address.
+    void ConnectToServer(string serverAddress, int port)
+    {   
+        bool ConnectionEstabilished = false;
         try
         {
-            socket = new TcpClient(host, port);
+
+            socket = new TcpClient(serverAddress, port);
             stream = socket.GetStream();
-            writer = new StreamWriter(stream);
             reader = new StreamReader(stream);
 
-            socketReady = true;
+            string remoteAddress = reader.ReadLine();
+
+
+                if (remoteAddress != null)
+                    ConnectToRemoteClient(remoteAddress);
+            
+            reader = new StreamReader(stream);
+            writer = new StreamWriter(stream);
+            timer.Start();
+            
+
+
         }
+
         catch (Exception e)
         {
             Debug.Log("Socket Error:" + e.Message);
+            
         }
-        return socketReady;
 
+
+        return ConnectionEstabilished;
     }
 
-    private void Update()
+
+    //Connection to remote.
+    private void ConnectToRemoteClient(string remoteAddress)
     {
-        if (socketReady)
-        {
+        socket = new TcpClient(remoteAddress, port);
+        stream = socket.GetStream();
+        CheckData();
+    }
+    
+    //Launching event for remote data received.
+    void CheckData(){
+        while(socket.Connected()){
             if (stream.DataAvailable)
             {
                 string data = reader.ReadLine();
                 if (data != null)
-                    OnIncomingData(data);
+                    ReceivedMessageFromRemote.Invoke(data);
             }
-        }
-    }
-    //Send message to server
-    public void Send(string data)
-    {
-        if (!socketReady)
-            return;
-        writer.WriteLine(data);
-        writer.Flush();
-
-    }
-
-    //Read Message from Server
-    private void OnIncomingData(string data)
-    {
-        Debug.Log("client:" + data);
-        var aData = data.Split('|');
-        switch (aData[0])
-        {
-            case "SWHO":
-                for (int i = 1; i < aData.Length - 1; i++)
-                {
-                    UserConnected(aData[i], false);
-                }
-                Send("CWHO|" + clientName + "|" + ((isHost) ? 1 : 0).ToString());
-                break;
-            case "SCNN":
-                UserConnected(aData[1], false);
-                break;
-            case "SOVE":
-                Field.Instance.Move(aData[1], int.Parse(aData[2]));
-                break;
-            case "SRAW":
-                Field.Instance.Draw(aData[1]);
-                break;
 
         }
+           
     }
-    private void UserConnected(string name, bool host)
-    {
-        GameClient client = new GameClient();
-        client.name = name;
 
-        players.Add(client);
+    public void SendData(string data){
+        if(socket.Connected){
 
-        if (players.Count == 2)
-        {
-            GameManager.Instance.StartGame();
+            writer.WriteLine(data);
+            
         }
 
-
-    }
-    private void OnApplicationQuit()
-    {
-        CloseSocket();
     }
 
-    private void OnDisable()
-    {
-        CloseSocket();
-    }
-    private void CloseSocket()
-    {
-        if (!socketReady)
-        {
-            return;
-        }
+    //Disposing client
+    public ~Client(){
         writer.Close();
         reader.Close();
         socket.Close();
-        socketReady = false;
     }
+   
 }
 
+    
+  
 
-public class GameClient
-{
-    public string name;
-    public bool isHost;
 }

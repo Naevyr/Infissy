@@ -1,17 +1,38 @@
-namespace InfissyProperties {
+namespace Infissy.Properties
+{
+    public static class NetworkProperties{
 
-     public static class CardProperties {
-        public static enum CardType {
+        public enum MessageType{
+            Move, GameStatus, PlayerStatus
+        }
+
+        public static class MoveMessageProperties{
+            public enum MoveMessageData{
+            MessageType, IDCardPlayed, IDTargetCard
+            }
+
+            public enum MoveMessageType{
+                Active = 3, Targetless = 2
+            }
+
+        }
+        
+
+
+    }
+    public static class CardProperties {
+        public enum CardType {
             Attack, Structure, PassiveSpell, ActiveSpell, Trap
         }
 
-        public static enum CardReferenceCity {
+        public enum CardReferenceCity {
             Belrik, Zrata, Venous, Ereco, Other
         }
 
-        public static enum CardRarity {
+        public enum CardRarity {
             Copper, Steel, Brass, Silver, Gold
         }
+
 
         /// <summary>
         /// Definisce il target dell'effetto, si suddivide in nemico e alleato come : avversario e se stesso
@@ -19,13 +40,10 @@ namespace InfissyProperties {
         ///     Gold Materials Population sono le 3 risorse
         ///     Structure Unit sono costruzioni e unità
         /// </summary>
-        public static class CardEffectTarget {
-            static public enum Enemy {
-                EnemyGold, EnemyMaterials, EnemyPopulation, EnemyStructure, EnemyUnit
-            }
-            static public enum Ally {
-                AllyGold, AllyMaterials, AllyPopulation, AllyStructure, AllyUnit
-            }
+        public enum CardEffectTarget {
+           
+                AllyGold, AllyResources, AllyPopulation, AllyStructure, AllyUnit, EnemyGold, EnemyResources, EnemyPopulation, EnemyStructure, EnemyUnit,  None
+            
 
        }
 
@@ -35,34 +53,23 @@ namespace InfissyProperties {
         /// Descrive il tipo di effetto delle carte. 
         /// Si suddivide in
         /// 
-        ///     Fixed Value, che implica un valore finito da aggiungere o togliere al target dell'effetto. (IE L'attacco di una truppa verso un'altra)
+        ///     Value/Percentual per modificare un determinato valore, per un incremento 
         ///
         ///     Complex Value, che implica operazioni matematiche o ulteriori dati presi da altre classi. (IE L'aumento percentuale delle risorse grazie a una costruzione)
         ///  
-        /// /// </summary>
-        public static class CardEffectType{
-
-           public static enum FixedValue{
-               ValueDecrease, ValueIncrease
-           }
-
-           public static enum ComplexValue
-           {
-               Percentual, ValueBased
-           }
-
-           public static enum StatusEffect {
-
-               Healable, Destructible, Targetable
-           }
-       }
+        ///</summary>
+        public enum CardEffectType{
+               ValueIncrement, PercentualIncrement, ValueBased, CardDraw, EndGame, Healable, Destructible, Targetable, Effect
+        }
+       
             
              
 
         
         public struct CardEffect{
             
-            public CardTargetEffect TargetEffect;
+          
+            public CardEffectTarget EffectTarget;
             public int EffectValue;
             public CardEffectType EffectType;
 

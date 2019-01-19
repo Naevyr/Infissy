@@ -53,17 +53,18 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-     <Compile Include="Assets\Scripts\Extensions.cs" />
-     <Compile Include="Assets\Scripts\Field.cs" />
-     <Compile Include="Assets\Scripts\GameManager.cs" />
-     <Compile Include="Assets\Scripts\GameManagerOLD.cs" />
-     <Compile Include="Assets\Scripts\Giocatore.cs" />
+     <Compile Include="Assets\Scripts\Framework\Card.cs" />
+     <Compile Include="Assets\Scripts\Framework\CardManager.cs" />
+     <Compile Include="Assets\Scripts\Framework\Field.cs" />
+     <Compile Include="Assets\Scripts\Framework\GameManager.cs" />
+     <Compile Include="Assets\Scripts\Framework\Player.cs" />
+     <Compile Include="Assets\Scripts\GameObjectScripts\CardScript.cs" />
+     <Compile Include="Assets\Scripts\GameObjectScripts\FieldScript.cs" />
      <Compile Include="Assets\Scripts\InfissyProperties.cs" />
      <Compile Include="Assets\Scripts\Networking\Client.cs" />
      <Compile Include="Assets\Scripts\Networking\DBCaller.cs" />
-     <Compile Include="Assets\Scripts\Networking\Player.cs" />
+     <Compile Include="Assets\Scripts\Networking\Encoder.cs" />
      <Compile Include="Assets\Scripts\Networking\Server.cs" />
-     <Compile Include="Assets\Scripts\UI\Card.cs" />
      <Compile Include="Assets\Scripts\UI\CardDisplay.cs" />
      <Compile Include="Assets\Scripts\UI\Deck.cs" />
      <Compile Include="Assets\Scripts\UI\Drop.cs" />
