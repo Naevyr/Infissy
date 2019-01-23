@@ -32,9 +32,11 @@ public class Card {
     public CardReferenceCity ReferenceCity;
     //Rarità della carta nel ritrovamento nei pacchetti unita all'estetica, ho usato metalli dell'epoca per poterne usare i colori della carta visualizzata.
     public CardRarity Rarity;
-    public bool Friendly;
+
+    public int usage;
+    
     public List<CardEffect> Effects;
-    public bool Progress;
+    public int Progress;
     public CardType Type; 
     public int IDCard;
     
@@ -63,9 +65,9 @@ public class Card {
                             string description,
                             CardReferenceCity referenceCity,
                             CardRarity rarity,
-                            bool friendly,
+                        
                             List<CardEffect> effect,
-                            bool progress,
+                            int progress,
                             CardType type)
     {
         Title = title;
@@ -74,7 +76,7 @@ public class Card {
         Description = description;
         ReferenceCity = referenceCity;
         Rarity = rarity;
-        Friendly = friendly;
+       
         Effect = effect;
         Progress = progress;
         CardType = type;
@@ -130,5 +132,25 @@ public class Card {
     }
 
 }
+
+
+
+
+
+
+
+
+    public struct CardEffect{
+            
+          
+            public CardEffectTarget EffectTarget;
+            public int EffectValue;
+            public CardEffectType EffectType;
+
+
+
+    }
+
+
 
 }

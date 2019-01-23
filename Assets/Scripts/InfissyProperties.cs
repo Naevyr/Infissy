@@ -22,7 +22,7 @@ namespace Infissy.Properties
     }
     public static class CardProperties {
         public enum CardType {
-            Attack, Structure, PassiveSpell, ActiveSpell, Trap
+            Attack, Structure, PassiveSpell, ActiveSpell, Trap, Progress
         }
 
         public enum CardReferenceCity {
@@ -66,18 +66,7 @@ namespace Infissy.Properties
              
 
         
-        public struct CardEffect{
-            
-          
-            public CardEffectTarget EffectTarget;
-            public int EffectValue;
-            public CardEffectType EffectType;
-
-
-
-        }
-
-
+       
 
         
     }

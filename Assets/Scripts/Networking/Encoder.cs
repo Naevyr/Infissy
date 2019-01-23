@@ -1,8 +1,11 @@
 
 using System;
 using System.Collections;
+
+
 using Infissy.Framework;
 using static Infissy.Properties.NetworkProperties;
+using static Infissy.Properties.NetworkProperties.MoveMessageProperties;
 
 namespace Infissy.Networking{
     class Encoder{
@@ -37,11 +40,21 @@ namespace Infissy.Networking{
             networkClient.SendData(dataToSend);
 
         }
-        public string EncodeMoveMessageToRemote(int idCard, int idCardTarget)
+        public string EncodeMoveMessageToRemote(int idCard, int[] idCardTargets)
         {
             
+
+            string targetsString;
+            foreach(int target in idCardTargets){
+                
+                targetsString += target.ToString() + ',';
+                
+            }
             
-            string dataToSend = MessageType.Move +"::"+ idCard + "::" + idCardTarget;
+            targetsString.Remove(targetsString.Length-1);
+
+            string dataToSend = MessageType.Move +"::"+ idCard + "::" + targetsString;
+            
             networkClient.SendData(dataToSend);
 
         }
@@ -53,18 +66,30 @@ namespace Infissy.Networking{
         
 
         public void DecodeMoveFromRemote(string[] message){
-            
-            if(message.Length = Convert.ToInt32(MoveMessageProperties.MoveMessageType.Targetless)){
-                cardManager.PlayCard(cardManager.FindCard(Convert.ToInt32(message[MoveMessageProperties.MoveMessageData.IDCardPlayed])),false);
+                   
+            if(message.Length = Convert.ToInt32(MoveMessageType.Targetless)){
+                cardManager.PlayCard(cardManager.FindCard(Convert.ToInt32(message[MoveMessageData.IDCardPlayed])),false);
             }else{
-                cardManager.PlayCard(cardManager.FindCard(Convert.ToInt32(message[MoveMessageProperties.MoveMessageData.IDCardPlayed])),false,cardManager.FindCard(Convert.ToInt32(message[MoveMessageProperties.MoveMessageData.IDTargetCard])));
+
+                string[] messageTargets = message[2].Split(",");
+                Card[] targetCards = new Card[messageTargets.Length-1];
+
+                for (int i = 0; i < messageTargets.Length; i++)
+                {
+                    if(messageTargets[i] != "-1"){
+                            targetCards[i] =cardManager.FindCard(Convert.ToInt32(messageTargets[i]));
+                    }
+                    
+                }
+
+                cardManager.PlayCard(cardManager.FindCard(Convert.ToInt32(message[MoveMessageData.IDCardPlayed])),false,targetCards);
             }
            
             
         }
         public void DefineMessageFromRemote(string message){
 
-            string[] remoteData = String.Split(message,"::");
+            string[] remoteData = message.Split("::");
 
             if(remoteData[0] == MessageType.Move.ToString()){
                 DecodeMoveFromRemote(remoteData);

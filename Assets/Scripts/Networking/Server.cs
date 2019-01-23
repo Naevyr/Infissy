@@ -84,7 +84,7 @@ public class Server : MonoBehaviour
 
     private void StartListening()
     {
-        server.BeginAcceptTcpClient(AcceptTcpClient, server);
+        server.AcceptTcpClient(AcceptTcpClient, server);
     }
 
     private void AcceptTcpClient(IAsyncResult ar)

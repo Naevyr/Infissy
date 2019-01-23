@@ -25,6 +25,9 @@ namespace Infissy.Framework
         private Stack<Card>[] inFieldCards;
 
 
+        bool healable;
+        bool targetable;
+
         public int Gold {get { return gold; } }
         public int Population { get { return population; } }
         public int Resources { get { return resources; } }
@@ -53,7 +56,7 @@ namespace Infissy.Framework
 
 
 
-    public virtual bool AffectPlayer(int effectValue, CardEffectTarget affectTarget, bool localMove){
+    public virtual bool AffectPlayer(int effectValue, CardEffectTarget affectTarget){
         bool affected = true;
 
         switch(affectTarget){
@@ -105,6 +108,16 @@ namespace Infissy.Framework
         
     
     return affected;
+    }
+
+    public void SetPlayerStatus(CardEffectTarget status, bool Healable_Targetable){
+        switch(status){
+            case CardEffectTarget.Healable:
+            healable = Healable_Targetable;
+            case CardEffectTarget.Targetable:
+            targetable = Healable_Targetable;
+        }
+
     }
 
 
