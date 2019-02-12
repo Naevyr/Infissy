@@ -5,9 +5,6 @@ namespace Infissy.Framework
 {
     public class Player
     {
-
-
-        Client client;
         bool localPlayer;
 
         //Ottimizzazione sucessiva da fare
@@ -36,18 +33,7 @@ namespace Infissy.Framework
         public bool Healable { get { return healable; } }
         public bool Targetable { get { return targetable; } }
 
-        public Client Client
-        {
-            get
-            {
-                return client;
-            }
-
-            set
-            {
-                client = value;
-            }
-        }
+        public Client Client { get; set; }
 
         public void Draw()
         {
