@@ -74,7 +74,7 @@ public class Server : MonoBehaviour
 
         for (int i = 0; i < disconnectList.Count - 1; i++)
         {
-            //tell somemody disconnected
+            //tell somebody disconnected
 
             clients.Remove(disconnectList[i]);
             disconnectList.RemoveAt(i);
@@ -165,10 +165,13 @@ public class Server : MonoBehaviour
                 BroadCast("SCNN|" + c.clientName, clients);
                 break;
             case "MOVE":
-                BroadCast("SOVE|" + aData[1]+"|"+aData[2],clients);
+                BroadCast("SOVE|" + aData[1] + "|" + aData[2], clients);
                 break;
             case "DRAW":
-                BroadCast("SRAW|" + aData[1],clients);
+                BroadCast("SRAW|" + aData[1], clients);
+                break;
+            case "PLCA":
+                BroadCast("SPCA" + aData[1], clients);
                 break;
         }
     }

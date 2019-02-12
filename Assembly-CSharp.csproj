@@ -60,21 +60,18 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Scripts\Card.cs" />
+    <Compile Include="Assets\Scripts\CardManager.cs" />
     <Compile Include="Assets\Scripts\Carta.cs" />
     <Compile Include="Assets\Scripts\Client.cs" />
     <Compile Include="Assets\Scripts\DBCaller.cs" />
     <Compile Include="Assets\Scripts\Extensions.cs" />
     <Compile Include="Assets\Scripts\Field.cs" />
     <Compile Include="Assets\Scripts\GameManager.cs" />
-    <Compile Include="Assets\Scripts\GameManagerOLD.cs" />
     <Compile Include="Assets\Scripts\Giocatore.cs" />
+    <Compile Include="Assets\Scripts\InfissyProperties.cs" />
     <Compile Include="Assets\Scripts\Player.cs" />
     <Compile Include="Assets\Scripts\Server.cs" />
-    <Compile Include="Assets\Scripts\UI\Card.cs" />
-    <Compile Include="Assets\Scripts\UI\CardDisplay.cs" />
-    <Compile Include="Assets\Scripts\UI\Deck.cs" />
-    <Compile Include="Assets\Scripts\UI\Drop.cs" />
-    <Compile Include="Assets\Scripts\UI\Movement.cs" />
     <Reference Include="UnityEditor.StandardEvents">
       <HintPath>C:/Users/marco/Documents/Infissy/Library/ScriptAssemblies/UnityEditor.StandardEvents.dll</HintPath>
     </Reference>

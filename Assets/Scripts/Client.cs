@@ -76,7 +76,7 @@ public class Client : MonoBehaviour
                 {
                     UserConnected(aData[i], false);
                 }
-                Send("CWHO|" + clientName + "|" + ((isHost) ? 1 : 0).ToString());
+                Send("CWHO|" + clientName + "|" + (isHost ? 1 : 0).ToString());
                 break;
             case "SCNN":
                 UserConnected(aData[1], false);
@@ -87,6 +87,10 @@ public class Client : MonoBehaviour
             case "SRAW":
                 Field.Instance.Draw(aData[1]);
                 break;
+            case "SPCA":
+                
+                break;
+
 
         }
     }
