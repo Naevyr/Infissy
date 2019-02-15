@@ -1,5 +1,29 @@
 namespace Infissy.Properties
 {
+ 
+    public static class GameProperties{
+
+
+        public static class GameInitializationValues{
+            public const int CardDrawNumber = 1;
+            public const int InitialPlayerGold = 500;
+            public const int InitialPlayerResources = 500;
+            public const int InitialPlayerPopulation = 1500;
+
+        }
+        public enum GamePhase{
+
+            DrawPhase,
+            PlayPhase,
+            MovePhase,
+            AttackPhase
+
+        }
+
+     
+
+    }
+
     public static class NetworkProperties
     {
 
@@ -44,11 +68,11 @@ namespace Infissy.Properties
 
         public enum CardReferenceCity
         {
-            Belrik,
-            Zrata,
-            Venous,
-            Ereco,
-            Other
+            Belrik = 0,
+            Zrata = 1,
+            Venous = 2,
+            Ereco = 3,
+            Other = 4
         }
 
         public enum CardRarity
