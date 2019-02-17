@@ -26,6 +26,11 @@ public class Card {
     public bool Destructible {get{return destructible;}}
     public bool Targetable { get{ return targetable;}}
 
+
+    
+
+
+
     public string Title;
     public Sprite CardImage;
     public string Description;
@@ -33,34 +38,22 @@ public class Card {
     //Rarità della carta nel ritrovamento nei pacchetti unita all'estetica, ho usato metalli dell'epoca per poterne usare i colori della carta visualizzata.
     public CardRarity Rarity;
 
+
+    public string PopulationCost;
+    public string GoldCost;
+    public string ResourcesCost;
+
     public int usage;
-    
     public List<CardEffect> Effects;
     public List<CardEffect> SpawnEffects;
     public int Progress;
     public CardType Type; 
     public int IDCard;
     
-    /// <summary>
-    /// Inizializza la carta con dei campi basilari.
-    /// </summary>
-    public void CardInitialize (){
-        Title = "Sample Title";
-        CardImage = null;
-        Description = "Sample Description";
-        ReferenceCity = CardReferenceCity.Other;
-        Rarity = CardRarity.Steel;
-        Friendly = true;
-
-        //TODO:EffectList
-        //Effect = CardTargetEffect.Ally.AllyGold;
-        Progress = false;
-        Type = CardType.Attack;
-
-    }
 
 
-    public void CardInitialize (string title,
+
+    public static Card Initialize (string title,
                             Sprite cardImage,
                             int absolute,
                             string description,
@@ -70,16 +63,21 @@ public class Card {
                             int progress,
                             CardType type)
     {
-        Title = title;
-        CardImage = cardImage;
-        this.absolute = absolute;
-        Description = description;
-        ReferenceCity = referenceCity;
-        Rarity = rarity;
+
+            Card card = new Card();
+
+        card.Title = title;
+
+            //Set image path
+            card.CardImage = cardImage;
+        card.absolute = absolute;
+        card.Description = description;
+        card.ReferenceCity = referenceCity;
+        card.Rarity = rarity;
        
-        Effects = effect;
-        Progress = progress;
-        CardType = type;
+        card.Effects = effect;
+        card.Progress = progress;
+        card.Type = type;
 
 
         switch(type){
@@ -87,17 +85,19 @@ public class Card {
             //TODO:Struttura forse non curabile
             case CardType.Structure:
             case CardType.Attack:
-            healable = true;
-            destructible = true;
-            targetable = true;
-            break;
+                card.healable = true;
+                card.destructible = true;
+                card.targetable = true;
+                break;
             default:
-            healable = false;
-            destructible = false;
-            targetable = false;
-
+                card.healable = false;
+                card.destructible = false;
+                card.targetable = false;
+                break;
 
         }
+
+            return card;
     }
 
     
@@ -107,7 +107,7 @@ public class Card {
         bool affected = true;
         //Healing
         if(absoluteValue >= 0){
-                if(healable = true){
+                if(healable == true){
                 absolute += absoluteValue;
                 
             }else{
@@ -116,7 +116,7 @@ public class Card {
         }else{
             //Damaging 
             if((absolute + absoluteValue) < 0 ){
-                if(destructible = true){
+                if(destructible == true){
                     //DestroyCard()
                     
                 }else{

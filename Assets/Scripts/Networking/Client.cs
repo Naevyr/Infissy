@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net.Sockets;
 using UnityEngine;
-
+using Infissy.Framework;
 public class Client : MonoBehaviour
 {
     public string clientName;
@@ -14,15 +14,17 @@ public class Client : MonoBehaviour
     private NetworkStream stream;
     private StreamWriter writer;
     private StreamReader reader;
-
+    private Field fieldReference;
     private List<GameClient> players = new List<GameClient>();
 
     private void Start()
     {
         DontDestroyOnLoad(gameObject);
     }
-    public bool ConnectToServer(string host, int port)
+    //Sistemare Inizializzazione
+    public bool ConnectToServer(string host, int port, Field Field)
     {
+        fieldReference = Field;
         if (socketReady)
             return false;
         try
@@ -81,11 +83,35 @@ public class Client : MonoBehaviour
             case "SCNN":
                 UserConnected(aData[1], false);
                 break;
+
+            case "SPLY":
+                    
+            break;
             case "SOVE":
-                Field.Instance.Move(aData[1], int.Parse(aData[2]));
+
+                Card movedCard = fieldReference.FindCard(int.Parse(aData[1]));
+
+
+                var cardsTargetIDs = aData[2].Split(':');
+                List<Card> cardTargets = new List<Card>();
+                
+                foreach (var cardTargetID in cardsTargetIDs)
+                {
+                    if(cardTargetID == "-1")
+                    {
+                        cardTargets.Add(null);
+                    }
+                    else
+                    {
+                        cardTargets.Add(fieldReference.FindCard(int.Parse(cardTargetID)));
+                    }
+                    
+                }
+                
+                fieldReference.MoveCard(movedCard,false,cardTargets.ToArray());
                 break;
             case "SRAW":
-                Field.Instance.Draw(aData[1]);
+                fieldReference.Draw(aData[1]);
                 break;
             case "SPCA":
                 

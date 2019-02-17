@@ -3,6 +3,9 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using System.Linq;
+using Infissy.Framework;
+using static Infissy.Properties.GameProperties.GameInitializationValues;
+using System.Collections.Generic;
 
 public class GameManager : MonoBehaviour
 {
@@ -41,11 +44,16 @@ public class GameManager : MonoBehaviour
             s.Init();
 
             Client c = Instantiate(clientPrefab).GetComponent<Client>();
+            
+            
+            //Temp
+            Field gameField = InitializeGame(c);
+            
             c.clientName = nameInput.text;
             c.isHost = true;
             if (c.clientName == "")
                 c.clientName = "Server/Host";
-            c.ConnectToServer("127.0.0.1", 6312);
+            c.ConnectToServer("127.0.0.1", 6312,gameField);
         }
         catch (Exception e)
         {
@@ -56,6 +64,17 @@ public class GameManager : MonoBehaviour
         mainMenu.SetActive(false);
         serverMenu.SetActive(true);
     }
+    //Temp Field Initialization method
+    private Field InitializeGame(Client c)
+    {
+
+        List<Card> deck = DBCaller.GCFM(1);
+        Player player = Player.Initialize(new Stack<Card>(deck), 5, InitialPlayerResources, InitialPlayerGold, InitialPlayerPopulation, true);
+        Player remotePlayer = Player.Initialize(new Stack<Card>(deck), 5, InitialPlayerResources, InitialPlayerGold, InitialPlayerPopulation, true);
+        Field field = Field.Initalize(c, player, remotePlayer);
+        return field;
+    }
+
     public void LoginButton(string userin/* temp*/,string passwin)
     {
         DBCaller.Utente utente=null;
@@ -92,10 +111,12 @@ public class GameManager : MonoBehaviour
         try
         {
             Client c = Instantiate(clientPrefab).GetComponent<Client>();
+            Field gameField = InitializeGame(c);
+
             c.clientName = nameInput.text;
             if (c.clientName == "")
                 c.clientName = "Client";
-            c.ConnectToServer(hostAddress, 6312);
+            c.ConnectToServer(hostAddress, 6312,gameField);
             connectMenu.SetActive(true);
 
         }

@@ -49,7 +49,7 @@ namespace Infissy.Framework
 
         public void Draw()
         {
-            handCards.Push(deckCards.Pop());
+            handCards.Add(deckCards.Pop());
         }
 
 
@@ -65,7 +65,7 @@ namespace Infissy.Framework
             foreach(var handCard in handCards){
                 if(handCard == card){
                 
-                    inFieldCards[card.Type].Add(card);
+                    inFieldCards[(int)card.Type].Add(card);
                     break;
 
                 }
