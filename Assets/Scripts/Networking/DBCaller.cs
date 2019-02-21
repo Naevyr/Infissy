@@ -5,6 +5,9 @@ using System.Linq;
 using UnityEngine;
 using Infissy.Framework;
 using static Infissy.Properties.CardProperties;
+using UnityEngine.Networking;
+using System.Threading.Tasks;
+
 public class DBCaller : MonoBehaviour
 {
 
@@ -42,7 +45,7 @@ public class DBCaller : MonoBehaviour
         }
     }
 
-
+  
 
     public static int Login(string usern, string passw)
     {
@@ -53,46 +56,26 @@ public class DBCaller : MonoBehaviour
         var page = www.text;
         return int.Parse(page.Split('#')[1].Split(';')[0]);
     }
-    public List<Card> GCFM(int idMazzo) {
-
-        List<Card> deck = new List<Card>();
-
-                   
-                var form = new WWWForm();
-                form.AddField("idMazzo", idMazzo);           
-                var www = new WWW("http://www.bargiua.it/Infissy/Calls/gcfm.aspx", form);
-                var page = www.text;
-                var mazzo = new List<Card>();
-                var mazzoStringL = page.Split('#')[1].Split(Environment.NewLine.ToCharArray());
-                foreach (var carta in mazzoStringL)
-                {
-            //Enums
-
-                    var cardElements = carta.Split(';');
-                deck.Add(Card.Initialize(
-                         cardElements[1],
-                         null,
-                         //TempAbsolute
-                         500,
-                         cardElements[2],
-                         (CardReferenceCity)int.Parse(cardElements[3]),
-                         //TempRarity
-                         (CardRarity)2,
-                         //TempEffects
-                         null,
-                         //TempProgresso
-                         0,
-                         (CardType)int.Parse(cardElements[5])
-
-                ));
+    
 
 
-                }
 
-            return deck;
 
-        }
-       public void InsertUtente(string user,string passw)
+
+
+
+
+
+
+      
+
+
+    
+    
+   
+
+
+    public void InsertUtente(string user,string passw)
     {
         var form = new WWWForm();
         form.AddField("nome", user);

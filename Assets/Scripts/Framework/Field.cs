@@ -1,4 +1,5 @@
 ﻿using Infissy.Framework;
+using System.Collections.Generic;
 using UnityEngine;
 using static Infissy.Properties.CardProperties;
 using static Infissy.Properties.GameProperties;
@@ -21,11 +22,12 @@ public class Field
     private GamePhase gamePhase;
     private Player player;
 
-
-
-
+    ClickPriority clickPriority = ClickPriority.notYetDefined;
+    private List<Card>[] cardPlayBuffer = new List<Card>[2];
+     
+    public GamePhase GamePhase { get { return gamePhase; } }
     public Player Player { get{ return player; } }
-    public Player RemotePLayer  { get { return remotePlayer; } }
+    public Player RemotePlayer  { get { return remotePlayer; } }
     
 
 
@@ -46,7 +48,7 @@ public class Field
 
 
             //Need revision, using attack phase to permit initial draw
-            field.gamePhase = GamePhase.AttackPhase;
+            field.gamePhase = GamePhase.PlayPhase;
             return field;
     }
 
@@ -89,48 +91,147 @@ public class Field
 
 
     
-    public void ChangePhase(Card[] InteractedCards, Card[] targetCards){
+    public void ChangePhase(Card[] InteractedCards, Card[] targetCards, bool localPlayerMove){
 
         //Needs some fixing
         switch (gamePhase){
             case GamePhase.DrawPhase:
                 player.Draw(GameInitializationValues.CardDrawNumber);
                 remotePlayer.Draw(GameInitializationValues.CardDrawNumber);
+                    if (player.InFieldCards[(int)CardType.Structure].Count != 0)
+                    {
+                        foreach (var structureCard in player.InFieldCards[(int)CardType.Structure])
+                        {
+                            MoveCard(structureCard, false, null);
+                        }
+                    }
                 
-                foreach(var structureCard in player.InFieldCards[(int)CardType.Structure]){
-                    MoveCard(structureCard,false,null);
-                }
 
-                    gamePhase++;
-
+                    gamePhase = GamePhase.PlayPhase;
+                    
 
                     break;
                     
             case GamePhase.PlayPhase:
-            
-                    foreach(var playedCard in InteractedCards)
+
+                   
+                     
+                    if(cardPlayBuffer[0] == null)
                     {
+                        (cardPlayBuffer[0] = new List<Card>()).AddRange(InteractedCards);
+                        if (localPlayerMove)
+                        {
+                            clickPriority = ClickPriority.localFirstClick;
+                            player.Client.SendCards(InteractedCards);
+                            GameObject.FindObjectOfType<DisplayManager>().ChangePhaseButton.enabled = false;
+                        }
+                        else
+                        {
+                            clickPriority = ClickPriority.enemyFirstClick;
+                        }
+                        GameObject.FindObjectOfType<DisplayManager>().ChangePhaseButton.enabled = false;
 
-                        player.PlayCard(playedCard);
 
+                    }
+                    else
+                    {
+                        int stepNumber = Mathf.Max(cardPlayBuffer[0].Count, InteractedCards.Length);
+
+                        for (int i = 0; i < stepNumber; i++)
+                        {
+                             if(clickPriority == ClickPriority.localFirstClick)
+                            {
+                                if(i < cardPlayBuffer[0].Count)
+                                {
+                                    PlayCard(cardPlayBuffer[0][i], true);
+                                }
+                                if (i < InteractedCards.Length)
+                                {
+                                    PlayCard(InteractedCards[i], false);
+                                }
+
+                            }
+                            else
+                            {
+
+                                if (i < cardPlayBuffer[0].Count)
+                                {
+                                    PlayCard(cardPlayBuffer[0][i], false);
+                                }
+                                if (i < InteractedCards.Length)
+                                {
+                                    PlayCard(InteractedCards[i], true);
+                                }
+                            }
+                        }
+                        GameObject.FindObjectOfType<DisplayManager>().RefreshCards();
+                        
+                        GameObject.FindObjectOfType<DisplayManager>().ChangePhaseButton.enabled = true;
+                        gamePhase = GamePhase.DrawPhase;
+                        clickPriority = ClickPriority.notYetDefined;
+                        cardPlayBuffer = new List<Card>[2];
                     }
 
 
+
+                   
+
+
+                    
                     //PlayerInteraction
-                
-                break;
+
+                    break;
             case GamePhase.MovePhase:
-                //Player sets
+                    
+                    //
+
+
+                    gamePhase++;
                     break;
             case GamePhase.AttackPhase:
                     //Interaction
                     //Eventual moveCard call from here
                     //
-                    foreach (var playedCard in InteractedCards)
+                    if (cardPlayBuffer == null)
                     {
-                        MoveCard(playedCard, true, targetCards);
+                        cardPlayBuffer[0].AddRange(InteractedCards);
+                        cardPlayBuffer[1].AddRange(targetCards);
+                        if (localPlayerMove)
+                        {
+                            clickPriority = ClickPriority.localFirstClick;
+
+                        }
+                        else
+                        {
+                            clickPriority = ClickPriority.enemyFirstClick;
+                        }
+
                     }
-                    ChangePhase(null,null);
+                    else
+                    {
+                        int stepNumber = Mathf.Max(cardPlayBuffer[0].Count, InteractedCards.Length);
+
+                        for (int i = 0; i < stepNumber; i++)
+                        {
+                            if (clickPriority == ClickPriority.localFirstClick)
+                            {
+                                if (i < cardPlayBuffer[0].Count)
+                                {
+                                    MoveCard(cardPlayBuffer[0][i], true,cardPlayBuffer[1].ToArray());
+                                }
+                                if (i < InteractedCards.Length)
+                                {
+                                    MoveCard(InteractedCards[i], false,targetCards);
+                                }
+
+                            }
+                        }
+                        gamePhase++;
+                        ChangePhase(null, null, true);
+                    }
+
+
+                   
 
                     break;
             }
@@ -157,13 +258,7 @@ public class Field
             //enemy draw
         }
     }
-    public void SendDraw()
-    {
-        if (isTurn)
-        {
-            player.Client.Send("DRAW|" + player.Client.clientName);
-        }
-    }
+   
 
 
     public Card FindCard(int idCard)
@@ -258,99 +353,112 @@ public class Field
     }
 
     public void PlayCard(Card card, bool localPlayerMove){
-        
-        
-        //!Important, fix card target to avoid double affecting the host player
-        
-        player.PlayCard(card);
-        foreach(var effect in card.SpawnEffects){
 
 
-                switch (localPlayerMove)
+            //!Important, fix card target to avoid double affecting the host player
+            //Refactor
+            if (localPlayerMove)
+            {
+                player.PlayCard(card);
+            }
+            else
+            {
+                remotePlayer.PlayCard(card);
+            }
+        
+        if(card.SpawnEffects != null)
+            {
+                foreach (var effect in card.SpawnEffects)
                 {
-                    case true:
-                        switch (effect.EffectType)
-                        {
-                            case CardEffectType.ValueIncrement:
-                                player.AffectPlayer(effect.EffectValue, effect.EffectTarget);
-                                break;
-                            case CardEffectType.PercentualIncrement:
-
-                                int playerAffectedResource = 0;
 
 
-                                switch (effect.EffectTarget)
-                                {
+                    switch (localPlayerMove)
+                    {
+                        case true:
+                            switch (effect.EffectType)
+                            {
+                                case CardEffectType.ValueIncrement:
+                                    player.AffectPlayer(effect.EffectValue, effect.EffectTarget);
+                                    break;
+                                case CardEffectType.PercentualIncrement:
 
-                                    case CardEffectTarget.AllyGold:
-                                        playerAffectedResource = player.Gold;
-                                        break;
-
-                                    case CardEffectTarget.AllyPopulation:
-                                        playerAffectedResource = player.Population;
-                                        break;
-
-                                    case CardEffectTarget.AllyResources:
-                                        playerAffectedResource = player.Resources;
-                                        break;
-
-                                }
-
-                                int operationValue;
-                                operationValue = playerAffectedResource * effect.EffectValue / 100;
+                                    int playerAffectedResource = 0;
 
 
-                                player.AffectPlayer(operationValue, effect.EffectTarget);
-                                break;
-                                //Finisci la definizione dello spawn delle carte
-                        }
+                                    switch (effect.EffectTarget)
+                                    {
+
+                                        case CardEffectTarget.AllyGold:
+                                            playerAffectedResource = player.Gold;
+                                            break;
+
+                                        case CardEffectTarget.AllyPopulation:
+                                            playerAffectedResource = player.Population;
+                                            break;
+
+                                        case CardEffectTarget.AllyResources:
+                                            playerAffectedResource = player.Resources;
+                                            break;
+
+                                    }
+
+                                    int operationValue;
+                                    operationValue = playerAffectedResource * effect.EffectValue / 100;
 
 
-                        break;
-                    case false:
-                        switch (effect.EffectType)
-                        {
-                            case CardEffectType.ValueIncrement:
-                                remotePlayer.AffectPlayer(effect.EffectValue, effect.EffectTarget);
-                                break;
-                            case CardEffectType.PercentualIncrement:
-
-                                int playerAffectedResource = 0;
+                                    player.AffectPlayer(operationValue, effect.EffectTarget);
+                                    break;
+                                    //Finisci la definizione dello spawn delle carte
+                            }
 
 
-                                switch (effect.EffectTarget)
-                                {
+                            break;
+                        case false:
+                            switch (effect.EffectType)
+                            {
+                                case CardEffectType.ValueIncrement:
+                                    remotePlayer.AffectPlayer(effect.EffectValue, effect.EffectTarget);
+                                    break;
+                                case CardEffectType.PercentualIncrement:
 
-                                    case CardEffectTarget.AllyGold:
-                                        playerAffectedResource = remotePlayer.Gold;
-                                        break;
-
-                                    case CardEffectTarget.AllyPopulation:
-                                        playerAffectedResource = remotePlayer.Population;
-                                        break;
-
-                                    case CardEffectTarget.AllyResources:
-                                        playerAffectedResource = remotePlayer.Resources;
-                                        break;
-
-                                }
-
-                                int operationValue;
-                                operationValue = playerAffectedResource * effect.EffectValue / 100;
+                                    int playerAffectedResource = 0;
 
 
-                                remotePlayer.AffectPlayer(operationValue, effect.EffectTarget);
-                                break;
-                                //Finisci la definizione dello spawn delle carte
-                        }
-                        break;
+                                    switch (effect.EffectTarget)
+                                    {
+
+                                        case CardEffectTarget.AllyGold:
+                                            playerAffectedResource = remotePlayer.Gold;
+                                            break;
+
+                                        case CardEffectTarget.AllyPopulation:
+                                            playerAffectedResource = remotePlayer.Population;
+                                            break;
+
+                                        case CardEffectTarget.AllyResources:
+                                            playerAffectedResource = remotePlayer.Resources;
+                                            break;
+
+                                    }
+
+                                    int operationValue;
+                                    operationValue = playerAffectedResource * effect.EffectValue / 100;
+
+
+                                    remotePlayer.AffectPlayer(operationValue, effect.EffectTarget);
+                                    break;
+                                    //Finisci la definizione dello spawn delle carte
+                            }
+                            break;
+
+                    }
+
+
+
 
                 }
-                
-            
-           
-
-        }
+            }
+        
 
         
     }

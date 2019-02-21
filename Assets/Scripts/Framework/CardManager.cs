@@ -1,5 +1,6 @@
 //Manages cards relations, handles buildings and calls, as well as interacting with the players
 using static Infissy.Properties.CardProperties;
+using Infissy.Properties;
 
 namespace Infissy.Framework
 {
@@ -119,13 +120,13 @@ namespace Infissy.Framework
             foreach (var effect in card.Effects)
             {
 
-                if (effect.EffectTarget != CardEffectTarget.None)
+                if (effect.EffectTarget != CardProperties.CardEffectTarget.None)
                 {
                     switch (effect.EffectType)
                     {
 
                         //Flat Value Effect     
-                        case CardEffectType.ValueIncrement:
+                        case CardProperties.CardEffectType.ValueIncrement:
                             if ((int)effect.EffectTarget > 5)
                             {
                                 remotePlayer.AffectPlayer(effect.EffectValue, effect.EffectTarget - 5);

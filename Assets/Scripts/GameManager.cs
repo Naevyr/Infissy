@@ -6,6 +6,10 @@ using System.Linq;
 using Infissy.Framework;
 using static Infissy.Properties.GameProperties.GameInitializationValues;
 using System.Collections.Generic;
+using System.Collections;
+using UnityEngine.Networking;
+using static Infissy.Properties.CardProperties;
+using UnityEngine.Diagnostics;
 
 public class GameManager : MonoBehaviour
 {
@@ -18,9 +22,18 @@ public class GameManager : MonoBehaviour
     public GameObject serverPrefab;
     public GameObject clientPrefab;
 
+    public GameObject displayManagerPrefab;
+    
+    public Field field { set; get; }
     public DBCaller DBCaller;
 
+    Client c;
+
+
     public InputField nameInput;
+
+
+
     void Start()
     {
         Instance = this;
@@ -43,17 +56,20 @@ public class GameManager : MonoBehaviour
             Server s = Instantiate(serverPrefab).GetComponent<Server>();
             s.Init();
 
-            Client c = Instantiate(clientPrefab).GetComponent<Client>();
+            c = Instantiate(clientPrefab).GetComponent<Client>();
             
             
             //Temp
-            Field gameField = InitializeGame(c);
             
+            
+
+
+
             c.clientName = nameInput.text;
             c.isHost = true;
             if (c.clientName == "")
                 c.clientName = "Server/Host";
-            c.ConnectToServer("127.0.0.1", 6312,gameField);
+            c.ConnectToServer("127.0.0.1", 6312);
         }
         catch (Exception e)
         {
@@ -64,16 +80,7 @@ public class GameManager : MonoBehaviour
         mainMenu.SetActive(false);
         serverMenu.SetActive(true);
     }
-    //Temp Field Initialization method
-    private Field InitializeGame(Client c)
-    {
-
-        List<Card> deck = DBCaller.GCFM(1);
-        Player player = Player.Initialize(new Stack<Card>(deck), 5, InitialPlayerResources, InitialPlayerGold, InitialPlayerPopulation, true);
-        Player remotePlayer = Player.Initialize(new Stack<Card>(deck), 5, InitialPlayerResources, InitialPlayerGold, InitialPlayerPopulation, true);
-        Field field = Field.Initalize(c, player, remotePlayer);
-        return field;
-    }
+ 
 
     public void LoginButton(string userin/* temp*/,string passwin)
     {
@@ -110,13 +117,13 @@ public class GameManager : MonoBehaviour
 
         try
         {
-            Client c = Instantiate(clientPrefab).GetComponent<Client>();
-            Field gameField = InitializeGame(c);
+            c = Instantiate(clientPrefab).GetComponent<Client>();
 
+            
             c.clientName = nameInput.text;
             if (c.clientName == "")
                 c.clientName = "Client";
-            c.ConnectToServer(hostAddress, 6312,gameField);
+            c.ConnectToServer(hostAddress, 6312);
             connectMenu.SetActive(true);
 
         }
@@ -142,6 +149,97 @@ public class GameManager : MonoBehaviour
     }
     public void StartGame()
     {
+        StartCoroutine(FieldInitializationCoroutine());
         SceneManager.LoadScene("Game");
+        
     }
+
+
+
+
+
+
+    IEnumerator FieldInitializationCoroutine()
+    {
+
+        var request = UnityWebRequest.Get("http://www.bargiua.it/Infissy/Calls/gcfm.aspx?idmazzo=1");
+        yield return request.SendWebRequest();
+
+
+
+        List<Card> deck = new List<Card>();
+        string cardsData = request.downloadHandler.text;
+
+        Debug.Log(request.downloadHandler.isDone + request.downloadHandler.text);
+       
+        var mazzo = new List<Card>();
+        var mazzoStringL = cardsData.Split('#')[1].Split(new string[] { "<br>" }, StringSplitOptions.None);
+
+        foreach (var carta in mazzoStringL)
+        {
+            var cardElements = carta.Split(';');
+
+            if (cardElements.Length != 1)
+            {
+
+                deck.Add(Card.Initialize(
+                 int.Parse(cardElements[0]),
+                    //Title
+                 cardElements[2],
+                    //Image
+                 Resources.Load<Sprite>("Image1"),
+                    //TempAbsolute
+                 500,
+                    //Desc
+                 cardElements[3],
+                    //ReferenceCity
+                 (CardReferenceCity)int.Parse(cardElements[4]),
+                    //TempRarity
+                 (CardRarity)2,
+                    //TempEffects
+                 null,
+                    //TempProgresso
+                 0,
+                    //TempType
+                 (CardType)int.Parse(cardElements[6]),
+                    //Population
+                 cardElements[10],
+                    //Gold
+                 cardElements[12],
+                    //Resources
+                 cardElements[11]));
+
+
+            }
+
+
+
+
+        }
+        Card[] deck2 = new Card[deck.Count];
+        for (int i = 0; i < deck.Count; i++)
+        {
+            var cardCopy = deck[i];
+            deck2[i] = Card.Initialize(cardCopy.IDCard + 50, cardCopy.Title, cardCopy.CardImage, cardCopy.Absolute, cardCopy.Description, cardCopy.ReferenceCity, cardCopy.Rarity, cardCopy.Effects, cardCopy.Progress, cardCopy.Type, cardCopy.PopulationCost, cardCopy.GoldCost, cardCopy.ResourcesCost);
+        }
+       
+       
+        
+        if(c.isHost == true)
+        {
+            c.FieldReference = Field.Initalize(c, Player.Initialize(new Stack<Card>(deck), 5, 500, 500, 500, true), Player.Initialize(new Stack<Card>(deck2), 5, 500, 500, 500, true));
+        }
+        else
+        {
+            c.FieldReference = Field.Initalize(c, Player.Initialize(new Stack<Card>(deck2), 5, 500, 500, 500, true), Player.Initialize(new Stack<Card>(deck), 5, 500, 500, 500, true));
+        }
+        field = c.FieldReference;
+        Instantiate(displayManagerPrefab);
+
+
+
+    }
+
+
+    
 }

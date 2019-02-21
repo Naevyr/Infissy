@@ -20,6 +20,7 @@ namespace Infissy.Framework
         private List<Card>[] inFieldCards;
         bool healable=true;
         bool targetable=true;
+        private int progress=0;
 
 
 
@@ -31,9 +32,10 @@ namespace Infissy.Framework
         public List<Card> GraveyardCards { get { return graveyardCards; } }
         public List<Card>[] InFieldCards { get { return inFieldCards; } }
 
+        public int Progress { get { return progress; } }
         public bool Healable { get { return healable; } }
         public bool Targetable { get { return targetable; } }
-
+        
         public Client Client
         {
             get
@@ -55,7 +57,7 @@ namespace Infissy.Framework
 
         public void Draw(int nCard)
         {
-            for (int i = 0; i <= nCard; i++)
+            for (int i = 0; i < nCard; i++)
             {
                 Draw();
             }
@@ -154,21 +156,28 @@ namespace Infissy.Framework
         /// <param name="startPopulation">Starting population</param>
         /// <returns></returns>
         public static Player Initialize(Stack<Card> deckCards,
-                               int startHandCards,
+                               int startingDrawCards,
                                int startResources,
                                int startGold,
                                int startPopulation,
                                bool localPlayer)
         {
 
+
+            
+
+
             Player player = new Player();
+
+            player.handCards = new List<Card>();
+            player.inFieldCards = new List<Card>[]{ new List<Card>(), new List<Card>(), new List<Card>(), new List<Card>()};
+            player.graveyardCards = new List<Card>();
             player.gold = startGold;
             player.population = startPopulation;
             player.resources = startResources;
             player.deckCards = deckCards;
             player.localPlayer = localPlayer;
-            player.Draw(startHandCards);
-
+            player.Draw(startingDrawCards);
 
             return player;
         }

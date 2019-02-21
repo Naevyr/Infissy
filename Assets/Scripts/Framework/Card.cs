@@ -53,7 +53,8 @@ public class Card {
 
 
 
-    public static Card Initialize (string title,
+    public static Card Initialize (int IdCard,
+                            string title,
                             Sprite cardImage,
                             int absolute,
                             string description,
@@ -61,11 +62,14 @@ public class Card {
                             CardRarity rarity,
                             List<CardEffect> effect,
                             int progress,
-                            CardType type)
+                            CardType type,
+                            string populationCost,
+                            string goldCost,
+                            string resourceCost)
     {
 
             Card card = new Card();
-
+            card.IDCard = IdCard;
         card.Title = title;
 
             //Set image path
@@ -74,8 +78,10 @@ public class Card {
         card.Description = description;
         card.ReferenceCity = referenceCity;
         card.Rarity = rarity;
-       
-        card.Effects = effect;
+            card.PopulationCost = populationCost;
+            card.GoldCost = goldCost;
+            card.ResourcesCost = resourceCost;
+            card.Effects = effect;
         card.Progress = progress;
         card.Type = type;
 

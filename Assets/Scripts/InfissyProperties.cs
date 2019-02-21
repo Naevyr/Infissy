@@ -11,6 +11,14 @@ namespace Infissy.Properties
             public const int InitialPlayerPopulation = 1500;
 
         }
+
+        public enum ClickPriority
+        {
+            notYetDefined,
+            localFirstClick,
+            enemyFirstClick
+        }
+
         public enum GamePhase{
 
             DrawPhase,
@@ -24,6 +32,16 @@ namespace Infissy.Properties
 
     }
 
+    public static class DisplayProperties
+    {
+        public enum CardDisplayType
+        {
+            HandCard,
+            UnitCard,
+            StructureCard,
+
+        }
+    }
     public static class NetworkProperties
     {
 

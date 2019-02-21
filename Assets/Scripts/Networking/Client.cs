@@ -4,6 +4,7 @@ using System.IO;
 using System.Net.Sockets;
 using UnityEngine;
 using Infissy.Framework;
+
 public class Client : MonoBehaviour
 {
     public string clientName;
@@ -14,17 +15,23 @@ public class Client : MonoBehaviour
     private NetworkStream stream;
     private StreamWriter writer;
     private StreamReader reader;
-    private Field fieldReference;
-    private List<GameClient> players = new List<GameClient>();
+    
+    public Field FieldReference { get; set;  }
 
+   
+
+
+
+    private List<GameClient> players = new List<GameClient>();
+  
     private void Start()
     {
         DontDestroyOnLoad(gameObject);
     }
     //Sistemare Inizializzazione
-    public bool ConnectToServer(string host, int port, Field Field)
+    public bool ConnectToServer(string host, int port)
     {
-        fieldReference = Field;
+        
         if (socketReady)
             return false;
         try
@@ -66,6 +73,24 @@ public class Client : MonoBehaviour
 
     }
 
+
+    //Placeholder for play phase method
+    public void SendCards(Card[] cardsPlayed)
+    {
+        string cardPlayed = "";
+        foreach (var card in cardsPlayed)
+        {
+            cardPlayed += card.IDCard + ":";
+        }
+        if(cardPlayed != "")
+        {
+
+            cardPlayed = cardPlayed.Remove(cardPlayed.Length - 1);
+        }
+        Send("SPLY|"+cardPlayed);
+    }
+
+
     //Read Message from Server
     private void OnIncomingData(string data)
     {
@@ -85,37 +110,46 @@ public class Client : MonoBehaviour
                 break;
 
             case "SPLY":
+
+               
+
+                
+                var cardsMovedIDs = aData[1].Split(':');
+                List<Card> cardsMoved = new List<Card>();
+
+                foreach (var cardMovedID in cardsMovedIDs)
+                {
+                  
+                   
                     
-            break;
+                     cardsMoved.Add(FieldReference.FindCard(int.Parse(cardMovedID)));
+                    
+
+                }
+                FieldReference.ChangePhase(cardsMoved.ToArray(),null,false);
+
+
+
+                break;
             case "SOVE":
+                //New turn based gameplay
+                Card movedCard = FieldReference.FindCard(int.Parse(aData[1]));
 
-                Card movedCard = fieldReference.FindCard(int.Parse(aData[1]));
 
-
-                var cardsTargetIDs = aData[2].Split(':');
+                var cardsTargetIDs = aData[1].Split(':');
                 List<Card> cardTargets = new List<Card>();
                 
                 foreach (var cardTargetID in cardsTargetIDs)
                 {
-                    if(cardTargetID == "-1")
-                    {
-                        cardTargets.Add(null);
-                    }
-                    else
-                    {
-                        cardTargets.Add(fieldReference.FindCard(int.Parse(cardTargetID)));
-                    }
                     
                 }
-                
-                fieldReference.MoveCard(movedCard,false,cardTargets.ToArray());
+                FieldReference.MoveCard(movedCard, false, cardTargets.ToArray());
+
                 break;
             case "SRAW":
-                fieldReference.Draw(aData[1]);
+                FieldReference.Draw(aData[1]);
                 break;
-            case "SPCA":
-                
-                break;
+           
 
 
         }

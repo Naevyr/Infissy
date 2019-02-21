@@ -170,9 +170,20 @@ public class Server : MonoBehaviour
             case "DRAW":
                 BroadCast("SRAW|" + aData[1], clients);
                 break;
-            case "PLCA":
-                BroadCast("SPCA" + aData[1], clients);
+            case "SPLY":
+               if(clients[0] == c)
+                {
+                    StreamWriter writer = new StreamWriter(clients[1].tcp.GetStream());
+                    writer.WriteLine(data);
+                }
+                else
+                {
+                    StreamWriter writer = new StreamWriter(clients[0].tcp.GetStream());
+                    writer.WriteLine(data);
+                    writer.Flush();
+                }
                 break;
+            
         }
     }
 }
