@@ -5,8 +5,10 @@ using UnityEngine.UI;
 using Infissy.Framework;
 
 using static Infissy.Properties.DisplayProperties;
+using UnityEngine.EventSystems;
 
-public class CardDisplay : MonoBehaviour {
+public class CardDisplay : MonoBehaviour
+{
     
     public Card card;
     public Text title;
@@ -21,6 +23,15 @@ public class CardDisplay : MonoBehaviour {
     public Text popoulation;
     public Text firstMaterial;
     public Text money;
+    private CardDisplayType displayType;
+    
+
+    
+    private void Start()
+    {
+
+        
+    }
 
 
     
@@ -34,6 +45,12 @@ public class CardDisplay : MonoBehaviour {
 
     public void RefreshValues(CardDisplayType displayType)
     {
+        if(card.Absolute == 0)
+        {
+            Destroy(gameObject);
+        }
+
+
         //Partial-full refresh needed
         switch (displayType)
         {
@@ -44,10 +61,11 @@ public class CardDisplay : MonoBehaviour {
                 popoulation.text = card.PopulationCost.ToString();
                 firstMaterial.text = card.ResourcesCost.ToString();
                 money.text = card.GoldCost.ToString();
+                this.displayType = displayType;
                 break;
             case CardDisplayType.StructureCard:
             case CardDisplayType.UnitCard:
-                
+                this.displayType = displayType;
                 artwork.sprite = card.CardImage;
                 absolute.text = card.Absolute.ToString();
                 break;
@@ -57,4 +75,5 @@ public class CardDisplay : MonoBehaviour {
 
     }
 
+ 
 }

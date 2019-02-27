@@ -178,36 +178,74 @@ public class GameManager : MonoBehaviour
         foreach (var carta in mazzoStringL)
         {
             var cardElements = carta.Split(';');
-
+            Debug.Log(carta);
             if (cardElements.Length != 1)
             {
-
-                deck.Add(Card.Initialize(
+                var InitializedCard = Card.Initialize(
                  int.Parse(cardElements[0]),
-                    //Title
+                 //Title
                  cardElements[2],
-                    //Image
-                 Resources.Load<Sprite>("Image1"),
-                    //TempAbsolute
-                 500,
-                    //Desc
+                 //Image
+                 Resources.Load<Sprite>(cardElements[1]),
+                 //TempAbsolute
+                 int.Parse(cardElements[7]),
+                 //Desc
                  cardElements[3],
-                    //ReferenceCity
+                 //ReferenceCity
                  (CardReferenceCity)int.Parse(cardElements[4]),
-                    //TempRarity
+                 //TempRarity
                  (CardRarity)2,
-                    //TempEffects
+                 //TempEffects
                  null,
-                    //TempProgresso
+                 //TempProgresso
                  0,
-                    //TempType
+                 //TempType
                  (CardType)int.Parse(cardElements[6]),
-                    //Population
+                 //Population
                  cardElements[10],
-                    //Gold
+                 //Gold
                  cardElements[12],
-                    //Resources
-                 cardElements[11]));
+                 //Resources
+                 cardElements[11]);
+
+                CardEffect[] cardSpawnEffects = new CardEffect[3];
+                for (int i = 0; i < cardSpawnEffects.Length; i++)
+                {
+                    cardSpawnEffects[i].EffectTarget = CardEffectTarget.AllyGold + i;
+                    cardSpawnEffects[i].EffectType = CardEffectType.ValueIncrement;
+                   
+                }
+                
+
+                cardSpawnEffects[0].EffectValue = -int.Parse(InitializedCard.GoldCost);
+                cardSpawnEffects[1].EffectValue = -int.Parse(InitializedCard.PopulationCost);
+                cardSpawnEffects[2].EffectValue = -int.Parse(InitializedCard.ResourcesCost);
+                InitializedCard.SpawnEffects = cardSpawnEffects;
+                CardEffect[] cardEffects = new CardEffect[1];
+                if(InitializedCard.Type == CardType.Attack)
+                {
+                    cardEffects[0].EffectTarget = CardEffectTarget.EnemyUnit;
+                    cardEffects[0].EffectType = CardEffectType.ValueIncrement;
+                    cardEffects[0].EffectValue = -InitializedCard.Absolute;
+                }
+                else
+                {
+                    cardEffects = new CardEffect[3];
+                    cardEffects[0].EffectTarget = CardEffectTarget.AllyGold;
+                    cardEffects[0].EffectType = CardEffectType.ValueIncrement;
+                    cardEffects[0].EffectValue = -cardSpawnEffects[0].EffectValue;
+                    cardEffects[1].EffectTarget = CardEffectTarget.AllyPopulation;
+                    cardEffects[1].EffectType = CardEffectType.ValueIncrement;
+                    cardEffects[1].EffectValue = -cardSpawnEffects[1].EffectValue;
+                    cardEffects[2].EffectTarget = CardEffectTarget.AllyResources;
+                    cardEffects[2].EffectType = CardEffectType.ValueIncrement;
+                    cardEffects[2].EffectValue = -cardSpawnEffects[2].EffectValue;
+                }
+                
+                InitializedCard.Effects = cardEffects; 
+
+
+                deck.Add(InitializedCard);
 
 
             }
@@ -221,6 +259,8 @@ public class GameManager : MonoBehaviour
         {
             var cardCopy = deck[i];
             deck2[i] = Card.Initialize(cardCopy.IDCard + 50, cardCopy.Title, cardCopy.CardImage, cardCopy.Absolute, cardCopy.Description, cardCopy.ReferenceCity, cardCopy.Rarity, cardCopy.Effects, cardCopy.Progress, cardCopy.Type, cardCopy.PopulationCost, cardCopy.GoldCost, cardCopy.ResourcesCost);
+            CardEffect[] cardEffects = new CardEffect[3];
+            
         }
        
        

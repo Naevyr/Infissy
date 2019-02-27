@@ -16,17 +16,23 @@ public class DisplayManager : MonoBehaviour
     public GameObject UnitCard;
 
 
-
+    public Text GameStatus;
     public Text playerDisplayProgress;
     public Text remotePlayerDisplayProgress;
     GameObject playerDisplayResources;
     GameObject remotePlayerDisplayResources;
 
 
+    
+
 
     public Button ChangePhaseButton;
     List<Card> cardBufferPhase = new List<Card>();
-    
+
+
+    List<Card> movedCardBuffer = null;
+    List<Card[]> targetCardBuffer = null;
+
     private void Start()
     {
 
@@ -39,8 +45,36 @@ public class DisplayManager : MonoBehaviour
 
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+    public void MoveCard(Card cardMoved, Card[] targetCards) {
+        if (movedCardBuffer == null)
+            movedCardBuffer = new List<Card>();
+        movedCardBuffer.Add(cardMoved);
+
+        if (targetCardBuffer == null)
+            targetCardBuffer = new List<Card[]>();
+        targetCardBuffer.Add(targetCards);
+    }
+
+
+
+
+
+
     private void InitializeChangePhaseReferences()
     {
+        GameStatus = GameObject.FindGameObjectWithTag("GameStatusText").GetComponent<Text>();
         (ChangePhaseButton = GameObject.FindGameObjectWithTag("ChangePhaseButton").GetComponent<Button>()).onClick.AddListener(OnChangePhaseButtonClick);
     }
 
@@ -133,21 +167,62 @@ public class DisplayManager : MonoBehaviour
         {
             case Infissy.Properties.GameProperties.GamePhase.DrawPhase:
 
+                ColorBlock buttonColor = ChangePhaseButton.colors;
+                buttonColor.normalColor = Color.green;
+                ChangePhaseButton.colors = buttonColor;
 
-                field.ChangePhase(null, null, true);
-                
+                field.ChangePhase(null,null,true);
+                GameStatus.text = "Draw Phase";
+               
                 RefreshCards();
                 
                 break;
             case Infissy.Properties.GameProperties.GamePhase.PlayPhase:
+
+                ColorBlock buttonColorAttack = ChangePhaseButton.colors;
+                buttonColorAttack.normalColor = Color.blue;
+                ChangePhaseButton.colors = buttonColorAttack;
+
+
+
+                GameStatus.text = "Attack Phase";
                 field.ChangePhase(cardBufferPhase.ToArray(), null, true);
+               
+               
+                if(field.GamePhase == Infissy.Properties.GameProperties.GamePhase.AttackPhase)
+                {
+                   
+                    GameStatus.text = "Move Phase";
+
+                }
+                else
+                {
+                    GameStatus.text = "Attack Phase Second part";
+                }
+                RefreshValues();
+                break;
+            case Infissy.Properties.GameProperties.GamePhase.MovePhase:
+            case Infissy.Properties.GameProperties.GamePhase.AttackPhase:
+                RefreshCards();
+                RefreshValues();
+                if(movedCardBuffer != null)
+                {
+                    field.ChangePhase(movedCardBuffer.ToArray(), targetCardBuffer.ToArray(), true);
+                }
+                else
+                {
+                    field.ChangePhase(null, null, true);
+                }
+               
+              
+             
+                
+               
+               
+
                 RefreshCards();
                 RefreshValues();
 
-                break;
-            case Infissy.Properties.GameProperties.GamePhase.MovePhase:
-                break;
-            case Infissy.Properties.GameProperties.GamePhase.AttackPhase:
                 break;
             default:
                 break;
@@ -163,26 +238,53 @@ public class DisplayManager : MonoBehaviour
         var displayBuildings = GameObject.FindGameObjectsWithTag("Buildings");
         var displayHand = GameObject.FindGameObjectWithTag("Hand");
 
+
+        for (int i = 0; i < displayHand.transform.childCount; i++)
+        {
+            Destroy(displayHand.transform.GetChild(i).gameObject);
+
+
+        }
+        for (int i = 0; i < displayBuildings[0].transform.childCount; i++)
+        {
+            Destroy(displayFields[0].transform.GetChild(i).gameObject);
+        
+
+        }
+        for (int i = 0; i < displayBuildings[1].transform.childCount; i++)
+        {
+      
+            Destroy(displayFields[1].transform.GetChild(i).gameObject);
+
+        }
+
+
+        for (int i = 0; i < displayFields[0].transform.childCount; i++)
+        {
+            Destroy(displayFields[0].transform.GetChild(i).gameObject);
+          
+
+        }
+        for (int i = 0; i < displayFields[1].transform.childCount; i++)
+        {
+
+            
+           
+            Destroy(displayFields[1].transform.GetChild(i).gameObject);
+
+        }
+
+
+
         foreach (var handCard in field.Player.HandCards)
         {
-            bool cardFound = false;
-            foreach (var cardDisplay in displayHand.GetComponentsInChildren<CardDisplay>())
-            {
-                if (cardDisplay.card == handCard)
-                {
-                    cardFound = true;
-                    break;
-                }
-
-            }
-            if (cardFound == false)
-            {
+           
                 var prefabIst = Instantiate(HandCard);
                 prefabIst.GetComponent<CardDisplay>().SetCard(handCard);
                 prefabIst.GetComponent<CardDisplay>().RefreshValues(CardDisplayType.HandCard);
                 prefabIst.transform.SetParent(displayHand.transform);
                 prefabIst.transform.SetAsLastSibling();
-            }
+            
         }
        
 
@@ -191,46 +293,24 @@ public class DisplayManager : MonoBehaviour
 
         if (displayFields[0].name == "Field")
         {
-            
-                foreach (var fieldCard in field.Player.InFieldCards[(int)CardType.Attack])
+          
+
+            foreach (var fieldCard in field.Player.InFieldCards[(int)CardType.Attack])
                 {
-                    bool cardFound = false;
-                    foreach (var cardDisplay in displayFields[0].GetComponentsInChildren<CardDisplay>())
-                    {
-                        if (cardDisplay.card == fieldCard)
-                        {
-                            cardDisplay.RefreshValues(CardDisplayType.StructureCard);
-                            cardFound = true;
-                            break;
-                        }
-                           
-                    }
-                    if (cardFound == false)
-                    {
-                        var prefabIst = Instantiate(UnitCard);
-                        prefabIst.GetComponent<CardDisplay>().SetCard(fieldCard);
-                        prefabIst.GetComponent<CardDisplay>().RefreshValues(CardDisplayType.UnitCard);
-                        prefabIst.transform.SetParent(displayFields[0].transform);
-                        prefabIst.transform.SetAsLastSibling();
-                    }
+
+
+
+                    var prefabIst = Instantiate(UnitCard);
+                    prefabIst.GetComponent<CardDisplay>().SetCard(fieldCard);
+                    prefabIst.GetComponent<CardDisplay>().RefreshValues(CardDisplayType.UnitCard);
+                    prefabIst.transform.SetParent(displayFields[0].transform);
+                    prefabIst.transform.SetAsLastSibling();
+                    
                 }
 
-                //////
-                foreach (var fieldCard in field.RemotePlayer.InFieldCards[(int)CardType.Attack])
-                {
-                bool cardFound = false;
-                foreach (var cardDisplay in displayFields[1].GetComponentsInChildren<CardDisplay>())
-                {
-                    if (cardDisplay.card == fieldCard)
-                    {
-                        cardDisplay.RefreshValues(CardDisplayType.StructureCard);
-                        cardFound = true;
-                        break;
-                    }
-
-                }
-                if (cardFound == false)
-                {
+               
+                foreach (var fieldCard in field.RemotePlayer.InFieldCards[(int)CardType.Attack]) { 
+              
                     var prefabIst = Instantiate(UnitCard);
                     prefabIst.GetComponent<CardDisplay>().SetCard(fieldCard);
                     prefabIst.GetComponent<CardDisplay>().RefreshValues(CardDisplayType.UnitCard);
@@ -238,7 +318,7 @@ public class DisplayManager : MonoBehaviour
                     prefabIst.transform.SetAsLastSibling();
                 }
 
-                }
+                
 
 
         }
@@ -246,51 +326,25 @@ public class DisplayManager : MonoBehaviour
         {
             foreach (var fieldCard in field.Player.InFieldCards[(int)CardType.Attack])
             {
-                bool cardFound = false;
-                foreach (var cardDisplay in displayFields[1].GetComponentsInChildren<CardDisplay>())
-                {
-                    if (cardDisplay.card == fieldCard)
-                    {
-                        cardDisplay.RefreshValues(CardDisplayType.StructureCard);
-                        cardFound = true;
-                        break;
-                    }
-
-                }
-                if (cardFound == false)
-                {
+              
                     var prefabIst = Instantiate(UnitCard);
                     prefabIst.GetComponent<CardDisplay>().SetCard(fieldCard);
                     prefabIst.GetComponent<CardDisplay>().RefreshValues(CardDisplayType.UnitCard);
                     prefabIst.transform.SetParent(displayFields[1].transform);
                     prefabIst.transform.SetAsLastSibling();
-                }
+                
             }
 
-            ////////
             
 
             foreach (var fieldCard in field.RemotePlayer.InFieldCards[(int)CardType.Attack])
             {
-                bool cardFound = false;
-                foreach (var cardDisplay in displayFields[0].GetComponentsInChildren<CardDisplay>())
-                {
-                    if (cardDisplay.card == fieldCard)
-                    {
-                        cardDisplay.RefreshValues(CardDisplayType.StructureCard);
-                        cardFound = true;
-                        break;
-                    }
-
-                }
-                if (cardFound == false)
-                {
                     var prefabIst = Instantiate(UnitCard);
                     prefabIst.GetComponent<CardDisplay>().SetCard(fieldCard);
                     prefabIst.GetComponent<CardDisplay>().RefreshValues(CardDisplayType.UnitCard);
                     prefabIst.transform.SetParent(displayFields[0].transform);
                     prefabIst.transform.SetAsLastSibling();
-                }
+                
 
             }
 
@@ -300,51 +354,26 @@ public class DisplayManager : MonoBehaviour
         if (displayBuildings[0].name == "Buildings")
         {
 
+          
             foreach (var structureCard in field.Player.InFieldCards[(int)CardType.Structure])
             {
-                bool cardFound = false;
-                foreach (var cardDisplay in displayBuildings[0].GetComponentsInChildren<CardDisplay>())
-                {
-                    if (cardDisplay.card == structureCard)
-                    {
-                        cardDisplay.RefreshValues(CardDisplayType.StructureCard);
-                        cardFound = true;
-                        break;
-                    }
-
-                }
-                if (cardFound == false)
-                {
                     var prefabIst = Instantiate(BuildingCard);
                     prefabIst.GetComponent<CardDisplay>().SetCard(structureCard);
                     prefabIst.GetComponent<CardDisplay>().RefreshValues(CardDisplayType.StructureCard);
                     prefabIst.transform.SetParent(displayBuildings[0].transform);
                     prefabIst.transform.SetAsLastSibling();
-                }
+                
             }
             foreach (var structureCard in field.Player.InFieldCards[(int)CardType.Structure])
             {
-                bool cardFound = false;
-                foreach (var cardDisplay in displayBuildings[1].GetComponentsInChildren<CardDisplay>())
-                {
-                    if (cardDisplay.card == structureCard)
-                    {
-                        cardDisplay.RefreshValues(CardDisplayType.StructureCard);
-                        cardFound = true;
-                        break;
-                    }
 
-                }
-                if (cardFound == false)
-                {
-                    var prefabIst = Instantiate(BuildingCard);
-                    prefabIst.GetComponent<CardDisplay>().SetCard(structureCard);
-                    prefabIst.GetComponent<CardDisplay>().RefreshValues(CardDisplayType.StructureCard);
-                    prefabIst.transform.SetParent(displayBuildings[1].transform);
-                    prefabIst.transform.SetAsLastSibling();
-                }
+
+                var prefabIst = Instantiate(BuildingCard);
+                prefabIst.GetComponent<CardDisplay>().SetCard(structureCard);
+                prefabIst.GetComponent<CardDisplay>().RefreshValues(CardDisplayType.StructureCard);
+                prefabIst.transform.SetParent(displayBuildings[1].transform);
+                prefabIst.transform.SetAsLastSibling();
             }
-
 
         }
         else
@@ -352,47 +381,23 @@ public class DisplayManager : MonoBehaviour
 
             foreach (var structureCard in field.Player.InFieldCards[(int)CardType.Structure])
             {
-                bool cardFound = false;
-                foreach (var cardDisplay in displayBuildings[1].GetComponentsInChildren<CardDisplay>())
-                {
-                    if (cardDisplay.card == structureCard)
-                    {
-                        cardDisplay.RefreshValues(CardDisplayType.StructureCard);
-                        cardFound = true;
-                        break;
-                    }
-
-                }
-                if (cardFound == false)
-                {
+               
                     var prefabIst = Instantiate(BuildingCard);
                     prefabIst.GetComponent<CardDisplay>().SetCard(structureCard);
                     prefabIst.GetComponent<CardDisplay>().RefreshValues(CardDisplayType.StructureCard);
                     prefabIst.transform.SetParent(displayBuildings[1].transform);
                     prefabIst.transform.SetAsLastSibling();
-                }
+                
             }
             foreach (var structureCard in field.RemotePlayer.InFieldCards[(int)CardType.Structure])
             {
-                bool cardFound = false;
-                foreach (var cardDisplay in displayBuildings[0].GetComponentsInChildren<CardDisplay>())
-                {
-                    if (cardDisplay.card == structureCard)
-                    {
-                        cardDisplay.RefreshValues(CardDisplayType.StructureCard);
-                        cardFound = true;
-                        break;
-                    }
-
-                }
-                if (cardFound == false)
-                {
+               
                     var prefabIst = Instantiate(BuildingCard);
                     prefabIst.GetComponent<CardDisplay>().SetCard(structureCard);
                     prefabIst.GetComponent<CardDisplay>().RefreshValues(CardDisplayType.StructureCard);
                     prefabIst.transform.SetParent(displayBuildings[0].transform);
                     prefabIst.transform.SetAsLastSibling();
-                }
+               
             }
 
         }
@@ -467,6 +472,10 @@ public class DisplayManager : MonoBehaviour
     }
 
 
-    
+    struct MovedCard
+    {
+        public Card Card;
+        public Card[] TargetCards;
+    }
 }
     

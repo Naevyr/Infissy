@@ -15,15 +15,16 @@ public class Client : MonoBehaviour
     private NetworkStream stream;
     private StreamWriter writer;
     private StreamReader reader;
-    
-    public Field FieldReference { get; set;  }
 
-   
+    public Field FieldReference { get; set; }
+    public List<Card> cardMovedBuffer;
+    public List<Card[]> targetCardBuffer;
+
 
 
 
     private List<GameClient> players = new List<GameClient>();
-  
+
     private void Start()
     {
         DontDestroyOnLoad(gameObject);
@@ -31,7 +32,7 @@ public class Client : MonoBehaviour
     //Sistemare Inizializzazione
     public bool ConnectToServer(string host, int port)
     {
-        
+
         if (socketReady)
             return false;
         try
@@ -82,19 +83,50 @@ public class Client : MonoBehaviour
         {
             cardPlayed += card.IDCard + ":";
         }
-        if(cardPlayed != "")
+        if (cardPlayed != "")
         {
 
             cardPlayed = cardPlayed.Remove(cardPlayed.Length - 1);
         }
-        Send("SPLY|"+cardPlayed);
+        Send("SPLY|" + cardPlayed);
+    }
+
+
+    public void SendPlayedCards(Card[] cardPlayed, Card[][] targetCards)
+    {   if(cardPlayed != null)
+        {
+            for (int i = 0; i < cardPlayed.Length; i++)
+            {
+                string cardTargetMoveMessage = "";
+
+                foreach (var card in targetCards[i])
+                {
+                    cardTargetMoveMessage += card.IDCard + ":";
+                }
+                if (cardTargetMoveMessage != "")
+                {
+
+                    cardTargetMoveMessage = cardTargetMoveMessage.Remove(cardPlayed.Length - 1);
+                }
+                if (i == cardPlayed.Length - 1)
+                    Send($"SMOV|{cardPlayed[i].ToString()}|{ cardTargetMoveMessage}|True");
+                else
+                    Send($"SMOV|{cardPlayed[i].ToString()}|{ cardTargetMoveMessage}|False");
+            }
+            
+        }
+        else {
+            Send("SMOV|||True");
+        }
+        
+
     }
 
 
     //Read Message from Server
     private void OnIncomingData(string data)
     {
-        Debug.Log("client:" + data);
+        
         var aData = data.Split('|');
         switch (aData[0])
         {
@@ -111,45 +143,71 @@ public class Client : MonoBehaviour
 
             case "SPLY":
 
-               
 
-                
+
+
                 var cardsMovedIDs = aData[1].Split(':');
                 List<Card> cardsMoved = new List<Card>();
-
-                foreach (var cardMovedID in cardsMovedIDs)
+                if (cardsMovedIDs[0] != "")
                 {
-                  
-                   
-                    
-                     cardsMoved.Add(FieldReference.FindCard(int.Parse(cardMovedID)));
-                    
 
+                    foreach (var cardMovedID in cardsMovedIDs)
+                    {
+
+
+
+                        cardsMoved.Add(FieldReference.FindCard(int.Parse(cardMovedID)));
+
+
+                    }
                 }
-                FieldReference.ChangePhase(cardsMoved.ToArray(),null,false);
+
+
+                FieldReference.ChangePhase(cardsMoved.ToArray(), null, false);
 
 
 
                 break;
-            case "SOVE":
-                //New turn based gameplay
-                Card movedCard = FieldReference.FindCard(int.Parse(aData[1]));
-
-
-                var cardsTargetIDs = aData[1].Split(':');
-                List<Card> cardTargets = new List<Card>();
+            case "SMOV":
                 
-                foreach (var cardTargetID in cardsTargetIDs)
+                var cardTargetsIDs = aData[2].Split(':');
+                var cardPlayedID = aData[1];
+                int cardMoved;
+                if (int.TryParse(cardPlayedID,out cardMoved))
                 {
-                    
+                    Debug.Log(cardPlayedID);
+                    if (!bool.Parse(aData[3]))
+                    {
+                        List<Card> cardsTarget = new List<Card>();
+                        cardMovedBuffer.Add(FieldReference.FindCard(cardMoved));
+                        for (int i = 0; i < cardTargetsIDs.Length; i++)
+                        {
+                            cardsTarget.Add(FieldReference.FindCard(int.Parse(aData[3])));
+                        }
+                    }
+                    else
+                    {
+                        List<Card> cardsTarget = new List<Card>();
+                        cardMovedBuffer.Add(FieldReference.FindCard(int.Parse(cardPlayedID)));
+                        for (int i = 0; i < cardTargetsIDs.Length; i++)
+                        {
+                            cardsTarget.Add(FieldReference.FindCard(int.Parse(aData[3])));
+                        }
+                        FieldReference.ChangePhase(cardMovedBuffer.ToArray(), targetCardBuffer.ToArray(), false);
+
+                    }
+
                 }
-                FieldReference.MoveCard(movedCard, false, cardTargets.ToArray());
+                else
+                {
+                    FieldReference.ChangePhase(null, null, false);
+                }
+
+
 
                 break;
-            case "SRAW":
-                FieldReference.Draw(aData[1]);
-                break;
-           
+          
+
 
 
         }
@@ -188,11 +246,12 @@ public class Client : MonoBehaviour
         socket.Close();
         socketReady = false;
     }
-}
 
 
-public class GameClient
-{
-    public string name;
-    public bool isHost;
+
+    public class GameClient
+    {
+        public string name;
+        public bool isHost;
+    }
 }

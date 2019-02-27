@@ -1,74 +1,42 @@
 ﻿using Infissy.Framework;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using static Infissy.Properties.CardProperties;
 using static Infissy.Properties.GameProperties;
 namespace Infissy.Framework
 {
-
 public class Field 
 {
-    //?
+        Button changePhaseButton;
+        ClickPriority clickPriority = ClickPriority.notYetDefined;
 
-    public bool isHost;
-    private bool isHostTurn;
-    public bool isTurn;
-
-
-
-    
-    private Player remotePlayer;
-
-    private GamePhase gamePhase;
-    private Player player;
-
-    ClickPriority clickPriority = ClickPriority.notYetDefined;
-    private List<Card>[] cardPlayBuffer = new List<Card>[2];
-     
-    public GamePhase GamePhase { get { return gamePhase; } }
-    public Player Player { get{ return player; } }
-    public Player RemotePlayer  { get { return remotePlayer; } }
-    
+        private Card[] cardPlayBuffer;
+        private Card[][] cardTargetBuffer;
+        public GamePhase GamePhase { get; private set; }
+        public Player Player { get; private set; }
+        public Player RemotePlayer { get; private set; }
 
 
-
-
-    public static Field Initalize(Client Client, Player Player, Player RemotePlayer){
-
-            //?
+        public static Field Initalize(Client Client, Player Player, Player RemotePlayer){
 
             Field field = new Field();
 
-            field.player = Player;
-            field.player.Client = Client;
-            field.remotePlayer = RemotePlayer;
-        
-        
-            
-
-
-            //Need revision, using attack phase to permit initial draw
-            field.gamePhase = GamePhase.PlayPhase;
+            field.Player = Player;
+            field.Player.Client = Client;
+            field.RemotePlayer = RemotePlayer;
+            field.GamePhase = GamePhase.PlayPhase;
             return field;
     }
 
-
-
     
-
-    
-
 
     public void SendMove(Card movedCard, Card[] targetCards)
     {
-           
-
             string targetCardIDs = "";
            
 
                 
-
-
 
             
             foreach(var targetCard in targetCards)
@@ -83,99 +51,121 @@ public class Field
          
             targetCardIDs.Remove(targetCardIDs.Length - 3, 2); //Removes last 2 separators
 
-
-            player.Client.Send("MOVE|" + movedCard.IDCard + "|" + targetCardIDs);
-       
+            Player.Client.Send("MOVE|" + movedCard.IDCard + "|" + targetCardIDs);
     }
     
 
-
     
-    public void ChangePhase(Card[] InteractedCards, Card[] targetCards, bool localPlayerMove){
-
+    public void ChangePhase(Card[] InteractedCards, Card[][] targetCards, bool localPlayerMove){
         //Needs some fixing
-        switch (gamePhase){
+        switch (GamePhase){
             case GamePhase.DrawPhase:
-                player.Draw(GameInitializationValues.CardDrawNumber);
-                remotePlayer.Draw(GameInitializationValues.CardDrawNumber);
-                    if (player.InFieldCards[(int)CardType.Structure].Count != 0)
+                Player.Draw(GameInitializationValues.CardDrawNumber);
+                RemotePlayer.Draw(GameInitializationValues.CardDrawNumber);
+                    if (Player.InFieldCards[(int)CardType.Structure].Count != 0)
                     {
-                        foreach (var structureCard in player.InFieldCards[(int)CardType.Structure])
+                        foreach (var structureCard in Player.InFieldCards[(int)CardType.Structure])
                         {
                             MoveCard(structureCard, false, null);
                         }
                     }
                 
 
-                    gamePhase = GamePhase.PlayPhase;
-                    
-
+                    GamePhase = GamePhase.PlayPhase;
+                    GameObject.FindObjectOfType<DisplayManager>().RefreshCards();
+                    GameObject.FindObjectOfType<DisplayManager>().RefreshValues();
                     break;
                     
             case GamePhase.PlayPhase:
 
-                   
-                     
-                    if(cardPlayBuffer[0] == null)
+                    changePhaseButton = GameObject.FindObjectOfType<DisplayManager>().ChangePhaseButton;
+                
+
+                    if (clickPriority == ClickPriority.notYetDefined)
                     {
-                        (cardPlayBuffer[0] = new List<Card>()).AddRange(InteractedCards);
+                        cardPlayBuffer = InteractedCards;
+                        
                         if (localPlayerMove)
                         {
                             clickPriority = ClickPriority.localFirstClick;
-                            player.Client.SendCards(InteractedCards);
-                            GameObject.FindObjectOfType<DisplayManager>().ChangePhaseButton.enabled = false;
+                            Player.Client.SendCards(InteractedCards);
+                            changePhaseButton.interactable = false;
                         }
                         else
                         {
                             clickPriority = ClickPriority.enemyFirstClick;
                         }
-                        GameObject.FindObjectOfType<DisplayManager>().ChangePhaseButton.enabled = false;
-
+                            
+                        
 
                     }
                     else
                     {
-                        int stepNumber = Mathf.Max(cardPlayBuffer[0].Count, InteractedCards.Length);
+                        int bufferLenght;
+                        int movedCards;
 
-                        for (int i = 0; i < stepNumber; i++)
-                        {
-                             if(clickPriority == ClickPriority.localFirstClick)
+                        if (cardPlayBuffer == null)
+                            bufferLenght = 0;
+                        else
+                            bufferLenght = cardPlayBuffer.Length;
+                        if (InteractedCards == null)
+                            movedCards = 0;
+                        else
+                            movedCards = InteractedCards.Length;
+
+                        Debug.Log($"Buffer :{bufferLenght} Interacted :{movedCards}");
+
+                        int stepNumber = Mathf.Max(bufferLenght, movedCards);
+
+                            for (int i = 0; i < stepNumber; i++)
                             {
-                                if(i < cardPlayBuffer[0].Count)
+                                if (clickPriority == ClickPriority.localFirstClick)
                                 {
-                                    PlayCard(cardPlayBuffer[0][i], true);
+                                    if (i < bufferLenght)
+                                    {
+                                        PlayCard(cardPlayBuffer[i], true);
+                                    }
+                                    if (i < movedCards)
+                                    {
+                                        PlayCard(InteractedCards[i], false);
+                                    }
                                 }
-                                if (i < InteractedCards.Length)
+                                else
                                 {
-                                    PlayCard(InteractedCards[i], false);
+                                    if (i <  bufferLenght)
+                                    {
+                                        PlayCard(cardPlayBuffer[i], false);
+                                       
+                                    }
+                                    if (i <movedCards)
+                                    {
+                                        PlayCard(InteractedCards[i], true);
+                                    }
+
+                                    
                                 }
 
-                            }
-                            else
-                            {
-
-                                if (i < cardPlayBuffer[0].Count)
-                                {
-                                    PlayCard(cardPlayBuffer[0][i], false);
-                                }
-                                if (i < InteractedCards.Length)
-                                {
-                                    PlayCard(InteractedCards[i], true);
-                                }
-                            }
+                            
                         }
-                        GameObject.FindObjectOfType<DisplayManager>().RefreshCards();
+
                         
-                        GameObject.FindObjectOfType<DisplayManager>().ChangePhaseButton.enabled = true;
-                        gamePhase = GamePhase.DrawPhase;
+
+                        if (localPlayerMove == true)
+                        {
+                            Player.Client.SendCards(InteractedCards);
+                        }
+                        changePhaseButton.interactable= true;
+
+                        GameObject.FindObjectOfType<DisplayManager>().RefreshCards();
+
+                        
+                        GameObject.FindObjectOfType<DisplayManager>().RefreshValues();
+                        GamePhase = GamePhase.AttackPhase;
                         clickPriority = ClickPriority.notYetDefined;
-                        cardPlayBuffer = new List<Card>[2];
+                        cardPlayBuffer = null;
                     }
 
-
-
                    
-
 
                     
                     //PlayerInteraction
@@ -185,550 +175,427 @@ public class Field
                     
                     //
 
-
-                    gamePhase++;
-                    break;
+                    
             case GamePhase.AttackPhase:
                     //Interaction
-                    //Eventual moveCard call from here
+                    //Eventual moveCard calfrom her
+
+                   
+
                     //
-                    if (cardPlayBuffer == null)
+
+                    if (clickPriority == ClickPriority.notYetDefined)
                     {
-                        cardPlayBuffer[0].AddRange(InteractedCards);
-                        cardPlayBuffer[1].AddRange(targetCards);
+                        cardPlayBuffer = InteractedCards;
+                        cardTargetBuffer = targetCards;
+                       
+
+                       
                         if (localPlayerMove)
                         {
                             clickPriority = ClickPriority.localFirstClick;
-
+                            Player.Client.SendPlayedCards(InteractedCards,targetCards);
+                            changePhaseButton.interactable = false;
                         }
                         else
                         {
                             clickPriority = ClickPriority.enemyFirstClick;
                         }
-
                     }
                     else
                     {
-                        int stepNumber = Mathf.Max(cardPlayBuffer[0].Count, InteractedCards.Length);
+                        int bufferLenght;
+                        int movedCards;
 
-                        for (int i = 0; i < stepNumber; i++)
-                        {
-                            if (clickPriority == ClickPriority.localFirstClick)
+                        if (cardPlayBuffer == null)
+                            bufferLenght = 0;
+                        else
+                            bufferLenght = cardPlayBuffer.Length;
+                        if (InteractedCards == null)
+                            movedCards = 0;
+                        else
+                            movedCards = InteractedCards.Length;
+
+                        Debug.Log($"Buffer :{bufferLenght} Interacted :{movedCards}");
+
+                        int stepNumber = Mathf.Max(bufferLenght, movedCards);
+                            for (int i = 0; i < stepNumber; i++)
                             {
-                                if (i < cardPlayBuffer[0].Count)
+                                if (clickPriority == ClickPriority.localFirstClick)
                                 {
-                                    MoveCard(cardPlayBuffer[0][i], true,cardPlayBuffer[1].ToArray());
+                                    if (i < bufferLenght)
+                                    {
+                                        MoveCard(cardPlayBuffer[i], true, cardTargetBuffer[i]);
+                                    }
+                                    if (i < movedCards)
+                                    {
+                                        MoveCard(InteractedCards[i], false, targetCards[i]);
+                                    }
                                 }
-                                if (i < InteractedCards.Length)
+                                else
                                 {
-                                    MoveCard(InteractedCards[i], false,targetCards);
+                                    if (i < bufferLenght)
+                                    {
+                                        MoveCard(cardPlayBuffer[i], false,cardTargetBuffer[i]);
+                                    }
+                                    if (i < movedCards)
+                                    {
+                                        MoveCard(InteractedCards[i], localPlayerMove: true,cardTargetBuffer[i]);
+                                    }
                                 }
-
                             }
+                        
+
+                        
+                        if (localPlayerMove == true)
+                        {
+                            Player.Client.SendPlayedCards(InteractedCards,targetCards);
                         }
-                        gamePhase++;
+                        changePhaseButton.interactable = true;
+
+                        GameObject.FindObjectOfType<DisplayManager>().RefreshCards();
+                        
+
+                        GameObject.FindObjectOfType<DisplayManager>().RefreshValues();
+
+                        GamePhase = GamePhase.DrawPhase;
+                        clickPriority = ClickPriority.notYetDefined;
+                        cardPlayBuffer = null;
+                        cardTargetBuffer = null;
+
+                        
                         ChangePhase(null, null, true);
                     }
-
 
                    
 
                     break;
             }
-            
-
-
-
     }
 
-    
-
-
-
-
-    //?
-    public void Draw(string player)
-    {
-        if (this.player.Client.clientName == player)
+        private void CardDestroyed(Card card, CardEventArgs args)
         {
-            //player draw
+
+
         }
-        else
+
+        public Card FindCard(int idCard)
         {
-            //enemy draw
-        }
-    }
-   
-
-
-    public Card FindCard(int idCard)
-    {
-
-
-        foreach (var handCard in player.HandCards)
-        {
-            if (handCard.IDCard == idCard)
+            //Local handCard
+            for (int i = 0; i < Player.HandCards.Count; i++)
             {
-                return handCard;
-            }
-
-        }
-
-        foreach (var fieldCards in player.InFieldCards)
-        {
-
-            foreach (var fielSectorCard in fieldCards)
-            {
-
-                if (fielSectorCard.IDCard == idCard)
+                if (Player.HandCards[i].IDCard == idCard)
                 {
-                    return fielSectorCard;
+                    return Player.HandCards[i];
                 }
-
             }
 
-        }
-
-        foreach (var graveyardCard in player.GraveyardCards)
-        {
-
-            if (graveyardCard.IDCard == idCard)
+            for (int i = 0; i < Player.InFieldCards.Length; i++)
             {
-                return graveyardCard;
-            }
-        }
-
-        foreach (var deckCard in player.DeckCards)
-        {
-
-            if (deckCard.IDCard == idCard)
-            {
-                return deckCard;
-            }
-        }
-
-        foreach (var handCard in remotePlayer.HandCards)
-        {
-            if (handCard.IDCard == idCard)
-            {
-                return handCard;
-            }
-
-        }
-
-        foreach (var fieldCards in remotePlayer.InFieldCards)
-        {
-
-            foreach (var fielSectorCard in fieldCards)
-            {
-
-                if (fielSectorCard.IDCard == idCard)
+                for (int y = 0; y < Player.InFieldCards[i].Count; y++)
                 {
-                    return fielSectorCard;
+                    if (Player.InFieldCards[i][y].IDCard == idCard)
+                    {
+                        return Player.InFieldCards[i][y];
+                    }
                 }
-
             }
 
-        }
-
-        foreach (var graveyardCard in remotePlayer.GraveyardCards)
-        {
-
-            if (graveyardCard.IDCard == idCard)
+            for (int i = 0; i < Player.GraveyardCards.Count; i++)
             {
-                return graveyardCard;
+                if (Player.GraveyardCards[i].IDCard == idCard)
+                {
+                    return Player.GraveyardCards[i];
+                }
             }
-        }
 
-        foreach (var deckCard in remotePlayer.DeckCards)
-        {
-
-            if (deckCard.IDCard == idCard)
+            for (int i = 0; i < RemotePlayer.HandCards.Count; i++)
             {
-                return deckCard;
+                if (RemotePlayer.HandCards[i].IDCard == idCard)
+                {
+                    return RemotePlayer.HandCards[i];
+                }
             }
-        }
-        return null;
 
+            for (int i = 0; i < RemotePlayer.InFieldCards.Length; i++)
+            {
+                for (int y = 0; y < RemotePlayer.InFieldCards[i].Count; y++)
+                {
+                    if (RemotePlayer.InFieldCards[i][y].IDCard == idCard)
+                    {
+                        return RemotePlayer.InFieldCards[i][y];
+                    }
+                }
+            }
+
+            for (int i = 0; i < RemotePlayer.GraveyardCards.Count; i++)
+            {
+                if (RemotePlayer.GraveyardCards[i].IDCard == idCard)
+                {
+                    return RemotePlayer.GraveyardCards[i];
+                }
+            }
+
+            return null;
     }
 
     public void PlayCard(Card card, bool localPlayerMove){
-
-
-            //!Important, fix card target to avoid double affecting the host player
-            //Refactor
+            
+            
             if (localPlayerMove)
             {
-                player.PlayCard(card);
+                Player.PlayCard(card);
             }
             else
             {
-                remotePlayer.PlayCard(card);
+                RemotePlayer.PlayCard(card);
             }
-        
-        if(card.SpawnEffects != null)
-            {
-                foreach (var effect in card.SpawnEffects)
-                {
+            
 
-
-                    switch (localPlayerMove)
-                    {
-                        case true:
-                            switch (effect.EffectType)
-                            {
-                                case CardEffectType.ValueIncrement:
-                                    player.AffectPlayer(effect.EffectValue, effect.EffectTarget);
-                                    break;
-                                case CardEffectType.PercentualIncrement:
-
-                                    int playerAffectedResource = 0;
-
-
-                                    switch (effect.EffectTarget)
-                                    {
-
-                                        case CardEffectTarget.AllyGold:
-                                            playerAffectedResource = player.Gold;
-                                            break;
-
-                                        case CardEffectTarget.AllyPopulation:
-                                            playerAffectedResource = player.Population;
-                                            break;
-
-                                        case CardEffectTarget.AllyResources:
-                                            playerAffectedResource = player.Resources;
-                                            break;
-
-                                    }
-
-                                    int operationValue;
-                                    operationValue = playerAffectedResource * effect.EffectValue / 100;
-
-
-                                    player.AffectPlayer(operationValue, effect.EffectTarget);
-                                    break;
-                                    //Finisci la definizione dello spawn delle carte
-                            }
-
-
-                            break;
-                        case false:
-                            switch (effect.EffectType)
-                            {
-                                case CardEffectType.ValueIncrement:
-                                    remotePlayer.AffectPlayer(effect.EffectValue, effect.EffectTarget);
-                                    break;
-                                case CardEffectType.PercentualIncrement:
-
-                                    int playerAffectedResource = 0;
-
-
-                                    switch (effect.EffectTarget)
-                                    {
-
-                                        case CardEffectTarget.AllyGold:
-                                            playerAffectedResource = remotePlayer.Gold;
-                                            break;
-
-                                        case CardEffectTarget.AllyPopulation:
-                                            playerAffectedResource = remotePlayer.Population;
-                                            break;
-
-                                        case CardEffectTarget.AllyResources:
-                                            playerAffectedResource = remotePlayer.Resources;
-                                            break;
-
-                                    }
-
-                                    int operationValue;
-                                    operationValue = playerAffectedResource * effect.EffectValue / 100;
-
-
-                                    remotePlayer.AffectPlayer(operationValue, effect.EffectTarget);
-                                    break;
-                                    //Finisci la definizione dello spawn delle carte
-                            }
-                            break;
-
-                    }
-
-
-
-
-                }
-            }
-        
-
-        
     }
+            
+        
+
+        
+    
     public void MoveCard(Card card, bool localPlayerMove, Card[] targetCards)
     {   
-
-
         if(localPlayerMove == true)
             {
                 int targetIndex = 0;
-                foreach (var effect in card.Effects)
+                if(card != null)
                 {
-                    if (effect.EffectTarget != CardEffectTarget.None)
+                    foreach (var effect in card.Effects)
                     {
-                        switch (effect.EffectType)
+                        if (effect.EffectTarget != CardEffectTarget.None)
                         {
+                            switch (effect.EffectType)
+                            {
+                                //Flat Value Effect     
+                                case CardEffectType.ValueIncrement:
+                                    switch (effect.EffectTarget)
+                                    {
+                                        case CardEffectTarget.AllyPopulation:
+                                        case CardEffectTarget.AllyGold:
+                                        case CardEffectTarget.AllyResources:
+                                            Player.AffectPlayer(effect.EffectValue, effect.EffectTarget);
+                                            break;
+                                        case CardEffectTarget.EnemyGold:
+                                        case CardEffectTarget.EnemyPopulation:
+                                        case CardEffectTarget.EnemyResources:
+                                            RemotePlayer.AffectPlayer(effect.EffectValue, effect.EffectTarget - 5);
+                                            break;
+                                        case CardEffectTarget.AllyStructure:
+                                        case CardEffectTarget.AllyUnit:
+                                        case CardEffectTarget.EnemyStructure:
+                                        case CardEffectTarget.EnemyUnit:
+                                            targetCards[targetIndex].AffectCard(effect.EffectValue);
 
-                            //Flat Value Effect     
-                            case CardEffectType.ValueIncrement:
-                                switch (effect.EffectTarget)
-                                {
+                                            break;
 
-                                    case CardEffectTarget.AllyPopulation:
-                                    case CardEffectTarget.AllyGold:
-                                    case CardEffectTarget.AllyResources:
-                                        player.AffectPlayer(effect.EffectValue, effect.EffectTarget);
-                                        break;
-                                    case CardEffectTarget.EnemyGold:
-                                    case CardEffectTarget.EnemyPopulation:
-                                    case CardEffectTarget.EnemyResources:
-                                        remotePlayer.AffectPlayer(effect.EffectValue, effect.EffectTarget - 5);
-                                        break;
-                                    case CardEffectTarget.AllyStructure:
-                                    case CardEffectTarget.AllyUnit:
-                                    case CardEffectTarget.EnemyStructure:
-                                    case CardEffectTarget.EnemyUnit:
-                                        targetCards[targetIndex].AffectCard(effect.EffectValue);
+                                    }
+                                    break;
+                                case CardEffectType.PercentualIncrement:
 
-                                        break;
+                                    //Percentual Effect
+                                    int playerAffectedResource = default(int);
 
+                                    switch (effect.EffectTarget)
+                                    {
+                                        case CardEffectTarget.AllyGold:
+                                            playerAffectedResource = Player.Gold;
+                                            break;
 
+                                        case CardEffectTarget.AllyPopulation:
+                                            playerAffectedResource = Player.Population;
+                                            break;
 
-                                }
-                                break;
-                            case CardEffectType.PercentualIncrement:
+                                        case CardEffectTarget.AllyResources:
+                                            playerAffectedResource = Player.Resources;
+                                            break;
 
-                                //Percentual Effect
-                                int playerAffectedResource = default(int);
+                                        case CardEffectTarget.EnemyGold:
+                                            playerAffectedResource = RemotePlayer.Gold;
+                                            break;
 
-                                switch (effect.EffectTarget)
-                                {
+                                        case CardEffectTarget.EnemyPopulation:
+                                            playerAffectedResource = RemotePlayer.Population;
+                                            break;
 
-                                    case CardEffectTarget.AllyGold:
-                                        playerAffectedResource = player.Gold;
-                                        break;
+                                        case CardEffectTarget.EnemyResources:
+                                            playerAffectedResource = Player.Resources;
+                                            break;
 
-                                    case CardEffectTarget.AllyPopulation:
-                                        playerAffectedResource = player.Population;
-                                        break;
+                                        case CardEffectTarget.AllyStructure:
+                                        case CardEffectTarget.EnemyStructure:
+                                        case CardEffectTarget.AllyUnit:
+                                        case CardEffectTarget.EnemyUnit:
+                                            int affectValue = targetCards[targetIndex].Absolute * effect.EffectValue / 100;
 
-                                    case CardEffectTarget.AllyResources:
-                                        playerAffectedResource = player.Resources;
-                                        break;
+                                            card.AffectCard(affectValue);
 
-                                    case CardEffectTarget.EnemyGold:
-                                        playerAffectedResource = remotePlayer.Gold;
-                                        break;
+                                            break;
+                                    }
+                                    //Need refactoring, checks for target since effect without target is directed to the player 
+                                    if (targetCards[targetIndex] == null)
+                                    {
+                                        int operationValue;
+                                        operationValue = playerAffectedResource * effect.EffectValue / 100;
 
-                                    case CardEffectTarget.EnemyPopulation:
-                                        playerAffectedResource = remotePlayer.Population;
-                                        break;
+                                        if ((int)effect.EffectTarget > 5)
+                                        {
+                                            RemotePlayer.AffectPlayer(operationValue, effect.EffectTarget - 5);
+                                        }
+                                        else
+                                        {
+                                            Player.AffectPlayer(operationValue, effect.EffectTarget);
+                                        }
+                                    }
+                                    break;
 
-                                    case CardEffectTarget.EnemyResources:
-                                        playerAffectedResource = player.Resources;
-                                        break;
+                                case CardEffectType.Healable:
+                                case CardEffectType.Targetable:
+                                    //Check eventually resource regeneration !Important
 
-
-                                    case CardEffectTarget.AllyStructure:
-                                    case CardEffectTarget.EnemyStructure:
-                                    case CardEffectTarget.AllyUnit:
-                                    case CardEffectTarget.EnemyUnit:
-                                        int affectValue = targetCards[targetIndex].Absolute * effect.EffectValue / 100;
-
-                                        card.AffectCard(affectValue);
-
-                                        break;
-
-                                }
-                                //Need refactoring, checks for target since effect without target is directed to the player 
-                                if (targetCards[targetIndex] == null)
-                                {
-
-                                    int operationValue;
-                                    operationValue = playerAffectedResource * effect.EffectValue / 100;
-
+                                    break;
+                                case CardEffectType.CardDraw:
                                     if ((int)effect.EffectTarget > 5)
                                     {
-                                        remotePlayer.AffectPlayer(operationValue, effect.EffectTarget - 5);
+                                        RemotePlayer.Draw(effect.EffectValue);
                                     }
                                     else
                                     {
-                                        player.AffectPlayer(operationValue, effect.EffectTarget);
+                                        Player.Draw(effect.EffectValue);
                                     }
-
-
-                                }
-                                break;
-
-                            case CardEffectType.Healable:
-                            case CardEffectType.Targetable:
-                                //Check eventually resource regeneration !Important
-
-                                break;
-                            case CardEffectType.CardDraw:
-                                if ((int)effect.EffectTarget > 5)
-                                {
-                                    remotePlayer.Draw(effect.EffectValue);
-                                }
-                                else
-                                {
-                                    player.Draw(effect.EffectValue);
-                                }
-                                break;
-
+                                    break;
+                            }
                         }
 
+                        targetIndex++;
                     }
-
-                    targetIndex++;
                 }
+              
                 //Set eventual playerUse
                 card.usage += 1;
             }
             else
             {
                 int targetIndex = 0;
-                foreach (var effect in card.Effects)
+                if (card != null)
                 {
-                    if (effect.EffectTarget != CardEffectTarget.None)
+                    foreach (var effect in card.Effects)
                     {
-                        switch (effect.EffectType)
+                        if (effect.EffectTarget != CardEffectTarget.None)
                         {
+                            switch (effect.EffectType)
+                            {
+                                //Flat Value Effect     
+                                case CardEffectType.ValueIncrement:
+                                    switch (effect.EffectTarget)
+                                    {
+                                        case CardEffectTarget.AllyPopulation:
+                                        case CardEffectTarget.AllyGold:
+                                        case CardEffectTarget.AllyResources:
+                                            RemotePlayer.AffectPlayer(effect.EffectValue, effect.EffectTarget);
+                                            break;
+                                        case CardEffectTarget.EnemyGold:
+                                        case CardEffectTarget.EnemyPopulation:
+                                        case CardEffectTarget.EnemyResources:
+                                            Player.AffectPlayer(effect.EffectValue, effect.EffectTarget - 5);
+                                            break;
+                                        case CardEffectTarget.AllyStructure:
+                                        case CardEffectTarget.AllyUnit:
+                                        case CardEffectTarget.EnemyStructure:
+                                        case CardEffectTarget.EnemyUnit:
+                                            targetCards[targetIndex].AffectCard(effect.EffectValue);
 
-                            //Flat Value Effect     
-                            case CardEffectType.ValueIncrement:
-                                switch (effect.EffectTarget)
-                                {
+                                            break;
 
-                                    case CardEffectTarget.AllyPopulation:
-                                    case CardEffectTarget.AllyGold:
-                                    case CardEffectTarget.AllyResources:
-                                        player.AffectPlayer(effect.EffectValue, effect.EffectTarget);
-                                        break;
-                                    case CardEffectTarget.EnemyGold:
-                                    case CardEffectTarget.EnemyPopulation:
-                                    case CardEffectTarget.EnemyResources:
-                                        remotePlayer.AffectPlayer(effect.EffectValue, effect.EffectTarget - 5);
-                                        break;
-                                    case CardEffectTarget.AllyStructure:
-                                    case CardEffectTarget.AllyUnit:
-                                    case CardEffectTarget.EnemyStructure:
-                                    case CardEffectTarget.EnemyUnit:
-                                        targetCards[targetIndex].AffectCard(effect.EffectValue);
+                                    }
+                                    break;
+                                case CardEffectType.PercentualIncrement:
 
-                                        break;
+                                    //Percentual Effect
+                                    int remotePlayerAffectedResource = default(int);
 
+                                    switch (effect.EffectTarget)
+                                    {
+                                        case CardEffectTarget.AllyGold:
+                                            remotePlayerAffectedResource = RemotePlayer.Gold;
+                                            break;
 
+                                        case CardEffectTarget.AllyPopulation:
+                                            remotePlayerAffectedResource = RemotePlayer.Population;
+                                            break;
 
-                                }
-                                break;
-                            case CardEffectType.PercentualIncrement:
+                                        case CardEffectTarget.AllyResources:
+                                            remotePlayerAffectedResource = RemotePlayer.Resources;
+                                            break;
 
-                                //Percentual Effect
-                                int remotePlayerAffectedResource = default(int);
+                                        case CardEffectTarget.EnemyGold:
+                                            remotePlayerAffectedResource = Player.Gold;
+                                            break;
 
-                                switch (effect.EffectTarget)
-                                {
+                                        case CardEffectTarget.EnemyPopulation:
+                                            remotePlayerAffectedResource = Player.Population;
+                                            break;
 
-                                    case CardEffectTarget.AllyGold:
-                                        remotePlayerAffectedResource = remotePlayer.Gold;
-                                        break;
+                                        case CardEffectTarget.EnemyResources:
+                                            remotePlayerAffectedResource = Player.Resources;
+                                            break;
 
-                                    case CardEffectTarget.AllyPopulation:
-                                        remotePlayerAffectedResource = remotePlayer.Population;
-                                        break;
+                                        case CardEffectTarget.AllyStructure:
+                                        case CardEffectTarget.EnemyStructure:
+                                        case CardEffectTarget.AllyUnit:
+                                        case CardEffectTarget.EnemyUnit:
+                                            int affectValue = targetCards[targetIndex].Absolute * effect.EffectValue / 100;
 
-                                    case CardEffectTarget.AllyResources:
-                                        remotePlayerAffectedResource = remotePlayer.Resources;
-                                        break;
+                                            card.AffectCard(affectValue);
 
-                                    case CardEffectTarget.EnemyGold:
-                                        remotePlayerAffectedResource =player.Gold;
-                                        break;
+                                            break;
+                                    }
+                                    //Need refactoring, checks for target since effect without target is directed to the player 
+                                    if (targetCards[targetIndex] == null)
+                                    {
+                                        int operationValue;
+                                        operationValue = remotePlayerAffectedResource * effect.EffectValue / 100;
 
-                                    case CardEffectTarget.EnemyPopulation:
-                                        remotePlayerAffectedResource = player.Population;
-                                        break;
+                                        if ((int)effect.EffectTarget > 5)
+                                        {
+                                            Player.AffectPlayer(operationValue, effect.EffectTarget - 5);
+                                        }
+                                        else
+                                        {
+                                            RemotePlayer.AffectPlayer(operationValue, effect.EffectTarget);
+                                        }
+                                    }
+                                    break;
 
-                                    case CardEffectTarget.EnemyResources:
-                                        remotePlayerAffectedResource = player.Resources;
-                                        break;
+                                case CardEffectType.Healable:
+                                case CardEffectType.Targetable:
+                                    //Check eventually resource regeneration !Important
 
-
-                                    case CardEffectTarget.AllyStructure:
-                                    case CardEffectTarget.EnemyStructure:
-                                    case CardEffectTarget.AllyUnit:
-                                    case CardEffectTarget.EnemyUnit:
-                                        int affectValue = targetCards[targetIndex].Absolute * effect.EffectValue / 100;
-
-                                        card.AffectCard(affectValue);
-
-                                        break;
-
-                                }
-                                //Need refactoring, checks for target since effect without target is directed to the player 
-                                if (targetCards[targetIndex] == null)
-                                {
-
-                                    int operationValue;
-                                    operationValue = remotePlayerAffectedResource * effect.EffectValue / 100;
-
+                                    break;
+                                case CardEffectType.CardDraw:
                                     if ((int)effect.EffectTarget > 5)
                                     {
-                                        player.AffectPlayer(operationValue, effect.EffectTarget - 5);
+                                        Player.Draw(effect.EffectValue);
                                     }
                                     else
                                     {
-                                        remotePlayer.AffectPlayer(operationValue, effect.EffectTarget);
+                                        RemotePlayer.Draw(effect.EffectValue);
                                     }
-
-
-                                }
-                                break;
-
-                            case CardEffectType.Healable:
-                            case CardEffectType.Targetable:
-                                //Check eventually resource regeneration !Important
-
-                                break;
-                            case CardEffectType.CardDraw:
-                                if ((int)effect.EffectTarget > 5)
-                                {
-                                    player.Draw(effect.EffectValue);
-                                }
-                                else
-                                {
-                                    remotePlayer.Draw(effect.EffectValue);
-                                }
-                                break;
-
+                                    break;
+                            }
                         }
 
+                        targetIndex++;
                     }
-
-                    targetIndex++;
                 }
-                //Set eventual playerUse
-                card.usage += 1;
             }
-
-       
-
 
        
        
     }
-    
-
-
 }
-
-
 }

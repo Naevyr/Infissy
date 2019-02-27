@@ -154,7 +154,7 @@ public class Server : MonoBehaviour
     //Read Server
     private void OnIncomingData(ServerClient c, string data)
     {
-        Debug.Log("server:" + data);
+      
 
         var aData = data.Split('|');
         switch (aData[0])
@@ -170,11 +170,13 @@ public class Server : MonoBehaviour
             case "DRAW":
                 BroadCast("SRAW|" + aData[1], clients);
                 break;
+            case "SMOV":
             case "SPLY":
-               if(clients[0] == c)
+               if(c == clients[0])
                 {
                     StreamWriter writer = new StreamWriter(clients[1].tcp.GetStream());
                     writer.WriteLine(data);
+                    writer.Flush();
                 }
                 else
                 {

@@ -8,10 +8,10 @@ public class Draggable : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
     public Transform parentToReturnTo = null;
 	public Transform placeholderParent = null;
 
-	GameObject placeholder = null;
+	public GameObject placeholder = null;
 	
 	public void OnBeginDrag(PointerEventData eventData) {
-		Debug.Log ("OnBeginDrag");
+		
 		
 		placeholder = new GameObject();
 		placeholder.transform.SetParent( this.transform.parent );
@@ -57,7 +57,7 @@ public class Draggable : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
 	}
 	
 	public void OnEndDrag(PointerEventData eventData) {
-		Debug.Log ("OnEndDrag");
+		
 
         
         this.transform.SetParent( parentToReturnTo );

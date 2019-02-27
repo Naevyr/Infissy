@@ -1,8 +1,10 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 using static Infissy.Properties.CardProperties;
+using static Infissy.Properties.GameProperties.CardEventData;
 
 namespace Infissy.Framework
 {
@@ -27,9 +29,10 @@ public class Card {
     public bool Targetable { get{ return targetable;}}
 
 
-    
 
 
+        public delegate void CardDestroyedHandler(Card card,CardEventArgs args);
+        public event CardDestroyedHandler OnDestroy;
 
     public string Title;
     public Sprite CardImage;
@@ -37,15 +40,15 @@ public class Card {
     public CardReferenceCity ReferenceCity;
     //Rarità della carta nel ritrovamento nei pacchetti unita all'estetica, ho usato metalli dell'epoca per poterne usare i colori della carta visualizzata.
     public CardRarity Rarity;
-
+    
 
     public string PopulationCost;
     public string GoldCost;
     public string ResourcesCost;
 
     public int usage;
-    public List<CardEffect> Effects;
-    public List<CardEffect> SpawnEffects;
+    public CardEffect[] Effects;
+    public CardEffect[] SpawnEffects;
     public int Progress;
     public CardType Type; 
     public int IDCard;
@@ -60,7 +63,7 @@ public class Card {
                             string description,
                             CardReferenceCity referenceCity,
                             CardRarity rarity,
-                            List<CardEffect> effect,
+                            CardEffect[] effect,
                             int progress,
                             CardType type,
                             string populationCost,
@@ -127,6 +130,7 @@ public class Card {
                     
                 }else{
                     absolute = 0;
+                        OnDestroy.Invoke(this, new CardEventArgs(this, CardEventType.cardDestroyed));
                 }
             }else{
                 absolute += absoluteValue;
@@ -139,13 +143,6 @@ public class Card {
 
 }
 
-
-
-
-
-
-
-
     public struct CardEffect{
             
           
@@ -154,6 +151,26 @@ public class Card {
             public CardEffectType EffectType;
 
         
+
+    }
+
+
+    public class CardEventArgs : EventArgs
+    {
+        private Card sourceCard;
+        CardEventType eventType;
+
+        public CardEventArgs(Card cardSource, CardEventType eventType)
+        {
+            sourceCard = cardSource;
+            this.eventType = eventType;
+        }
+
+        public Card GetCard()
+        {
+            return sourceCard;
+        }
+
 
     }
 

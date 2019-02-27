@@ -9,7 +9,7 @@
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <RootNamespace></RootNamespace>
-    <ProjectGuid>{725684C1-FC39-46F6-3268-A39627CAEFB8}</ProjectGuid>
+    <ProjectGuid>{317B0155-8C49-FE47-DB32-76DE1DAE1FA7}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <AssemblyName>Assembly-CSharp</AssemblyName>
@@ -63,12 +63,12 @@
     <Compile Include="Assets\GameObjectScripts\CardScript.cs" />
     <Compile Include="Assets\Refresh.cs" />
     <Compile Include="Assets\Scripts\Framework\Card.cs" />
-    <Compile Include="Assets\Scripts\Framework\CardManager.cs" />
     <Compile Include="Assets\Scripts\Framework\Field.cs" />
     <Compile Include="Assets\Scripts\Framework\Player.cs" />
     <Compile Include="Assets\Scripts\GameManager.cs" />
     <Compile Include="Assets\Scripts\InfissyProperties.cs" />
     <Compile Include="Assets\Scripts\Interface\CardDisplay.cs" />
+    <Compile Include="Assets\Scripts\Interface\CardMoveDraggable.cs" />
     <Compile Include="Assets\Scripts\Interface\DisplayManager.cs" />
     <Compile Include="Assets\Scripts\Interface\Draggable.cs" />
     <Compile Include="Assets\Scripts\Interface\DropZone.cs" />
@@ -78,19 +78,19 @@
     <Compile Include="Assets\Scripts\Networking\DBCaller.cs" />
     <Compile Include="Assets\Scripts\Networking\Server.cs" />
     <Reference Include="Unity.TextMeshPro.Editor">
-      <HintPath>C:/Users/dan/Desktop/Coding/InfissyOldGood/Library/ScriptAssemblies/Unity.TextMeshPro.Editor.dll</HintPath>
+      <HintPath>C:/Users/dan/Desktop/Coding/Infissy/Library/ScriptAssemblies/Unity.TextMeshPro.Editor.dll</HintPath>
     </Reference>
     <Reference Include="Unity.PackageManagerUI.Editor">
-      <HintPath>C:/Users/dan/Desktop/Coding/InfissyOldGood/Library/ScriptAssemblies/Unity.PackageManagerUI.Editor.dll</HintPath>
+      <HintPath>C:/Users/dan/Desktop/Coding/Infissy/Library/ScriptAssemblies/Unity.PackageManagerUI.Editor.dll</HintPath>
     </Reference>
     <Reference Include="Unity.CollabProxy.Editor">
-      <HintPath>C:/Users/dan/Desktop/Coding/InfissyOldGood/Library/ScriptAssemblies/Unity.CollabProxy.Editor.dll</HintPath>
+      <HintPath>C:/Users/dan/Desktop/Coding/Infissy/Library/ScriptAssemblies/Unity.CollabProxy.Editor.dll</HintPath>
     </Reference>
     <Reference Include="Unity.TextMeshPro">
-      <HintPath>C:/Users/dan/Desktop/Coding/InfissyOldGood/Library/ScriptAssemblies/Unity.TextMeshPro.dll</HintPath>
+      <HintPath>C:/Users/dan/Desktop/Coding/Infissy/Library/ScriptAssemblies/Unity.TextMeshPro.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Analytics.DataPrivacy">
-      <HintPath>C:/Users/dan/Desktop/Coding/InfissyOldGood/Library/ScriptAssemblies/Unity.Analytics.DataPrivacy.dll</HintPath>
+      <HintPath>C:/Users/dan/Desktop/Coding/Infissy/Library/ScriptAssemblies/Unity.Analytics.DataPrivacy.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.AIModule">
       <HintPath>C:/Program Files/Unity/Editor/Data/Managed/UnityEngine/UnityEngine.AIModule.dll</HintPath>
@@ -294,13 +294,13 @@
       <HintPath>C:/Program Files/Unity/Editor/Data/UnityExtensions/Unity/UnitySpatialTracking/RuntimeEditor/UnityEngine.SpatialTracking.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Analytics.Editor">
-      <HintPath>C:/Users/dan/Desktop/Coding/InfissyOldGood/Library/PackageCache/com.unity.analytics@3.2.2/Unity.Analytics.Editor.dll</HintPath>
+      <HintPath>C:/Users/dan/Desktop/Coding/Infissy/Library/PackageCache/com.unity.analytics@3.2.2/Unity.Analytics.Editor.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Analytics.StandardEvents">
-      <HintPath>C:/Users/dan/Desktop/Coding/InfissyOldGood/Library/PackageCache/com.unity.analytics@3.2.2/Unity.Analytics.StandardEvents.dll</HintPath>
+      <HintPath>C:/Users/dan/Desktop/Coding/Infissy/Library/PackageCache/com.unity.analytics@3.2.2/Unity.Analytics.StandardEvents.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Analytics.Tracker">
-      <HintPath>C:/Users/dan/Desktop/Coding/InfissyOldGood/Library/PackageCache/com.unity.analytics@3.2.2/Unity.Analytics.Tracker.dll</HintPath>
+      <HintPath>C:/Users/dan/Desktop/Coding/Infissy/Library/PackageCache/com.unity.analytics@3.2.2/Unity.Analytics.Tracker.dll</HintPath>
     </Reference>
     <Reference Include="netstandard">
       <HintPath>C:/Program Files/Unity/Editor/Data/NetStandard/ref/2.0.0/netstandard.dll</HintPath>

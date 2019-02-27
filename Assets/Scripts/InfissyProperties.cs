@@ -12,6 +12,18 @@ namespace Infissy.Properties
 
         }
 
+        public static class CardEventData
+        {
+            public enum CardEventType
+            {
+                cardDestroyed,
+                cardInteracted,
+                cardPlayed
+                //To eventually continue
+            }
+        }
+
+
         public enum ClickPriority
         {
             notYetDefined,
@@ -86,11 +98,11 @@ namespace Infissy.Properties
 
         public enum CardReferenceCity
         {
-            Belrik = 0,
-            Zrata = 1,
-            Venous = 2,
-            Ereco = 3,
-            Other = 4
+            Belrik,
+            Zrata,
+            Venous,
+            Ereco,
+            Other
         }
 
         public enum CardRarity

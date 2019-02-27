@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using UnityEngine.EventSystems;
+using static Infissy.Properties.CardProperties;
 
 public class DropZone : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPointerExitHandler {
     public GameObject prefab;
@@ -35,15 +36,43 @@ public class DropZone : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoin
 	}
 	
 	public void OnDrop(PointerEventData eventData) {
-		Debug.Log (eventData.pointerDrag.name + " was dropped on " + gameObject.name);
-      
-		Draggable d = eventData.pointerDrag.GetComponent<Draggable>();
-        GameObject.FindGameObjectWithTag("DisplayManager").GetComponent<DisplayManager>().PlayCard(d,transform);
-        
-    
-        if (d != null) {
-			d.parentToReturnTo = this.transform;
-		}
-        
-	}
+        if(eventData.pointerDrag.GetComponent<CardDisplay>().card.Type == CardType.Attack && gameObject.name.Contains("Field"))
+        {
+          
+                Debug.Log(eventData.pointerDrag.name + " was dropped on " + gameObject.name);
+
+
+
+                Draggable d = eventData.pointerDrag.GetComponent<Draggable>();
+                GameObject.FindGameObjectWithTag("DisplayManager").GetComponent<DisplayManager>().PlayCard(d, transform);
+
+
+                if (d != null)
+                {
+                    d.parentToReturnTo = this.transform;
+                }
+            
+        }
+        if (eventData.pointerDrag.GetComponent<CardDisplay>().card.Type == CardType.Structure && gameObject.name.Contains("Buildings"))
+        {
+            
+                Debug.Log(eventData.pointerDrag.name + " was dropped on " + gameObject.name);
+
+
+
+                Draggable d = eventData.pointerDrag.GetComponent<Draggable>();
+                GameObject.FindGameObjectWithTag("DisplayManager").GetComponent<DisplayManager>().PlayCard(d, transform);
+
+
+                if (d != null)
+                {
+                    d.parentToReturnTo = this.transform;
+                }
+            
+        }
+
+
+
+
+    }
 }

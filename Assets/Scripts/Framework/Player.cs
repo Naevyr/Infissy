@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 using static Infissy.Properties.CardProperties;
 namespace Infissy.Framework
@@ -49,6 +50,9 @@ namespace Infissy.Framework
             }
         }
 
+
+
+
         public void Draw()
         {
             handCards.Add(deckCards.Pop());
@@ -64,16 +68,68 @@ namespace Infissy.Framework
         }
 
         public void PlayCard(Card card){
-            foreach(var handCard in handCards){
-                if(handCard == card){
-                
-                    inFieldCards[(int)card.Type].Add(card);
-                    break;
+                for(int i = 0; i < handCards.Count; i++)
+            {
 
+                if (handCards[i] == card)
+                {
+
+                    inFieldCards[(int)card.Type].Add(card);
+                    handCards.Remove(handCards[i]);
+                    card.OnDestroy += Player_OnCardDestroy;
+                    if (card.SpawnEffects != null)
+                    {
+                        foreach (var effect in card.SpawnEffects)
+                        {
+
+                            switch (effect.EffectType)
+                            {
+                                case CardEffectType.ValueIncrement:
+                                    AffectPlayer(effect.EffectValue, effect.EffectTarget);
+                                    break;
+
+
+                                case CardEffectType.PercentualIncrement:
+
+                                    int playerAffectedResource = 0;
+
+
+                                    switch (effect.EffectTarget)
+                                    {
+
+                                        case CardEffectTarget.AllyGold:
+                                            playerAffectedResource = gold;
+                                            break;
+
+                                        case CardEffectTarget.AllyPopulation:
+                                            playerAffectedResource = Population;
+                                            break;
+
+                                        case CardEffectTarget.AllyResources:
+                                            playerAffectedResource = Resources;
+                                            break;
+
+                                    }
+
+                                    int operationValue;
+                                    operationValue = playerAffectedResource * effect.EffectValue / 100;
+
+
+                                    AffectPlayer(operationValue, effect.EffectTarget);
+                                    break;
+
+                            }
+
+                        }
+
+                    }
                 }
             }
-
         }
+
+
+        
+
 
         public void AffectPlayer(int effectValue, CardEffectTarget affectTarget)
         {
@@ -107,7 +163,7 @@ namespace Infissy.Framework
                         {
 
                             population = 0;
-
+                            
                         }
                         else
                         {
@@ -128,6 +184,12 @@ namespace Infissy.Framework
             }
 
            
+        }
+
+        internal void Player_OnCardDestroy(Card card, CardEventArgs args)
+        {
+             inFieldCards[(int)card.Type].Remove(card);
+            graveyardCards.Add(card);  
         }
 
         public void SetPlayerStatus(CardEffectTarget status, bool Healable_Targetable)
