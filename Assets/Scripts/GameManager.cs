@@ -13,7 +13,6 @@ using UnityEngine.Diagnostics;
 
 public class GameManager : MonoBehaviour
 {
-
     public static GameManager Instance { get; set; }
     public GameObject mainMenu;
     public GameObject serverMenu;
@@ -40,7 +39,6 @@ public class GameManager : MonoBehaviour
         serverMenu.SetActive(false);
         connectMenu.SetActive(false);
         DontDestroyOnLoad(gameObject);
-        
     }
 
     public void ConnectButton()
@@ -50,7 +48,6 @@ public class GameManager : MonoBehaviour
     }
     public void HostButton()
     {
-       
         try
         {
             Server s = Instantiate(serverPrefab).GetComponent<Server>();
@@ -74,7 +71,6 @@ public class GameManager : MonoBehaviour
         catch (Exception e)
         {
             Debug.Log(e.Message);
-
         }
 
         mainMenu.SetActive(false);
@@ -105,7 +101,6 @@ public class GameManager : MonoBehaviour
                 Debug.Log("Password errata");
             }
         }
-        
 
         
     }
@@ -125,13 +120,11 @@ public class GameManager : MonoBehaviour
                 c.clientName = "Client";
             c.ConnectToServer(hostAddress, 6312);
             connectMenu.SetActive(true);
-
         }
         catch (Exception e)
         {
             Debug.Log(e.Message);
         }
-
     }
 
     public void BackButton()
@@ -151,7 +144,6 @@ public class GameManager : MonoBehaviour
     {
         StartCoroutine(FieldInitializationCoroutine());
         SceneManager.LoadScene("Game");
-        
     }
 
 
@@ -161,7 +153,6 @@ public class GameManager : MonoBehaviour
 
     IEnumerator FieldInitializationCoroutine()
     {
-
         var request = UnityWebRequest.Get("http://www.bargiua.it/Infissy/Calls/gcfm.aspx?idmazzo=1");
         yield return request.SendWebRequest();
 
@@ -213,7 +204,6 @@ public class GameManager : MonoBehaviour
                 {
                     cardSpawnEffects[i].EffectTarget = CardEffectTarget.AllyGold + i;
                     cardSpawnEffects[i].EffectType = CardEffectType.ValueIncrement;
-                   
                 }
                 
 
@@ -247,9 +237,7 @@ public class GameManager : MonoBehaviour
 
                 deck.Add(InitializedCard);
 
-
             }
-
 
 
 
@@ -259,8 +247,9 @@ public class GameManager : MonoBehaviour
         {
             var cardCopy = deck[i];
             deck2[i] = Card.Initialize(cardCopy.IDCard + 50, cardCopy.Title, cardCopy.CardImage, cardCopy.Absolute, cardCopy.Description, cardCopy.ReferenceCity, cardCopy.Rarity, cardCopy.Effects, cardCopy.Progress, cardCopy.Type, cardCopy.PopulationCost, cardCopy.GoldCost, cardCopy.ResourcesCost);
+            deck2[i].Effects = cardCopy.Effects;
+            deck2[i].SpawnEffects = cardCopy.SpawnEffects;
             CardEffect[] cardEffects = new CardEffect[3];
-            
         }
        
        
@@ -274,12 +263,22 @@ public class GameManager : MonoBehaviour
             c.FieldReference = Field.Initalize(c, Player.Initialize(new Stack<Card>(deck2), 5, 500, 500, 500, true), Player.Initialize(new Stack<Card>(deck), 5, 500, 500, 500, true));
         }
         field = c.FieldReference;
+        field.Player.OnDestroy += RestartGame;
+        field.RemotePlayer.OnDestroy += RestartGame;
         Instantiate(displayManagerPrefab);
-
 
 
     }
 
+    private void RestartGame(Player player, Player.PlayerEventArgs args)
+    {
+        
+        SceneManager.LoadScene(0);
+        foreach(var gameObjectToDestroy in GameObject.FindGameObjectsWithTag("DontDestroyOnLoad"))
+        {
+            Destroy(gameObjectToDestroy);
 
-    
+        }
+        Destroy(this.gameObject);
+    }
 }

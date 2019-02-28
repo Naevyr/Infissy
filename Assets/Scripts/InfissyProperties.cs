@@ -1,15 +1,16 @@
+using System.Drawing;
+
 namespace Infissy.Properties
 {
- 
-    public static class GameProperties{
 
+
+    public static class GameProperties{
 
         public static class GameInitializationValues{
             public const int CardDrawNumber = 1;
             public const int InitialPlayerGold = 500;
             public const int InitialPlayerResources = 500;
             public const int InitialPlayerPopulation = 1500;
-
         }
 
         public static class CardEventData
@@ -22,7 +23,6 @@ namespace Infissy.Properties
                 //To eventually continue
             }
         }
-
 
         public enum ClickPriority
         {
@@ -39,13 +39,19 @@ namespace Infissy.Properties
             AttackPhase
 
         }
-
      
 
     }
 
     public static class DisplayProperties
     {
+      
+        public enum CardStatus
+        {
+            Selected,
+            Normal
+        }
+
         public enum CardDisplayType
         {
             HandCard,
@@ -56,7 +62,6 @@ namespace Infissy.Properties
     }
     public static class NetworkProperties
     {
-
         public enum MessageType
         {
             Move,
@@ -78,9 +83,7 @@ namespace Infissy.Properties
                 Active = 3,
                 Targetless = 2
             }
-
         }
-
 
 
     }
@@ -114,7 +117,6 @@ namespace Infissy.Properties
             Gold
         }
 
-
         /// <summary>
         /// Definisce il target dell'effetto, si suddivide in nemico e alleato come : avversario e se stesso
         /// 
@@ -138,10 +140,7 @@ namespace Infissy.Properties
             Targetable,
             None
 
-
         }
-
-
 
         /// <summary>
         /// Descrive il tipo di effetto delle carte. 
@@ -171,8 +170,6 @@ namespace Infissy.Properties
 
 
 
-
     }
-
 
 }

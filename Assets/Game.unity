@@ -427,6 +427,7 @@ GameObject:
   - component: {fileID: 619639147}
   - component: {fileID: 619639145}
   - component: {fileID: 619639146}
+  - component: {fileID: 619639148}
   m_Layer: 5
   m_Name: EnemyBuildings
   m_TagString: Buildings
@@ -513,6 +514,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 619639143}
   m_CullTransparentMesh: 0
+--- !u!114 &619639148
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 619639143}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2e7029f4f4f25344da2338843f9f53af, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &646322473
 GameObject:
   m_ObjectHideFlags: 0
@@ -1985,6 +1998,7 @@ GameObject:
   - component: {fileID: 1648898210}
   - component: {fileID: 1648898208}
   - component: {fileID: 1648898207}
+  - component: {fileID: 1648898209}
   m_Layer: 5
   m_Name: EnemyField
   m_TagString: Field
@@ -2063,6 +2077,18 @@ MonoBehaviour:
   m_ChildForceExpandHeight: 0
   m_ChildControlWidth: 1
   m_ChildControlHeight: 1
+--- !u!114 &1648898209
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1648898205}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2e7029f4f4f25344da2338843f9f53af, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!222 &1648898210
 CanvasRenderer:
   m_ObjectHideFlags: 0

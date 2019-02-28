@@ -6,7 +6,6 @@ using UnityEngine.EventSystems;
 
 public class CardMoveDraggable : MonoBehaviour, IBeginDragHandler,IDragHandler, IEndDragHandler, IDropHandler
 {
-
     Card[] targetBuffer;
     int targetBufferIndex;
     Card cardPointer;
@@ -23,7 +22,6 @@ public class CardMoveDraggable : MonoBehaviour, IBeginDragHandler,IDragHandler, 
         {
             IsDragable = true;
         }
-
     }
 
 
@@ -37,7 +35,7 @@ public class CardMoveDraggable : MonoBehaviour, IBeginDragHandler,IDragHandler, 
         {
             var displayManager = GameObject.FindGameObjectWithTag("DisplayManager").GetComponent<DisplayManager>();
             displayManager.MoveCard(this.GetComponent<CardDisplay>().card, targetBuffer);
-
+            
         }
     }
 
@@ -51,20 +49,17 @@ public class CardMoveDraggable : MonoBehaviour, IBeginDragHandler,IDragHandler, 
             return;
         else
             positionBuffer = transform.position;
-
     }
 
     public void OnEndDrag(PointerEventData eventData)
     {
         Debug.Log("OnEndDrag");
         transform.position = positionBuffer;
-        
 
     }
 
     public void OnDrop(PointerEventData eventData)
     {
-        
         
 
         Debug.Log(transform.position + " " + eventData.pointerDrag.GetComponent<CardDisplay>().card.IDCard + " " + GetComponent<CardDisplay>().card.IDCard);

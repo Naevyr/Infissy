@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class ResourcesDisplay : MonoBehaviour {
-    
     /*
      * 
      * Devi semplicemente prendere dal core del gioco i valori di:
@@ -14,10 +13,8 @@ public class ResourcesDisplay : MonoBehaviour {
 
 
 	void Start () {
-		
 	}
 
 	void Update () {
-		
 	}
 }

@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 
 public class DBCaller : MonoBehaviour
 {
-
     public List<Utente> UtentiData { get; set; } = new List<Utente>();
 
     void Start()
@@ -26,7 +25,6 @@ public class DBCaller : MonoBehaviour
         var udata = UtenteDataString.Split(';');
         foreach (var u in udata)
         {
-
             try
             {
                 var utente = new Utente();
@@ -40,7 +38,6 @@ public class DBCaller : MonoBehaviour
             {
                 continue;
             }
-
 
         }
     }
@@ -81,7 +78,6 @@ public class DBCaller : MonoBehaviour
         form.AddField("nome", user);
         form.AddField("passw", passw);
         var www = new WWW("http://localhost:81/Infissy/UtentiInsert.php", form);
-       
     }
     public class Utente
     {
@@ -89,5 +85,4 @@ public class DBCaller : MonoBehaviour
         public string NomeUtente { get; internal set; }
         public string Password { get; internal set; }
     }
-
 }

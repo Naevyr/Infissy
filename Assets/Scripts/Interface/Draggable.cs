@@ -4,14 +4,12 @@ using System.Collections;
 using UnityEngine.EventSystems;
 
 public class Draggable : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler {
-    
     public Transform parentToReturnTo = null;
 	public Transform placeholderParent = null;
 
 	public GameObject placeholder = null;
 	
 	public void OnBeginDrag(PointerEventData eventData) {
-		
 		
 		placeholder = new GameObject();
 		placeholder.transform.SetParent( this.transform.parent );
@@ -42,7 +40,6 @@ public class Draggable : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
 
 		for(int i=0; i < placeholderParent.childCount; i++) {
 			if(this.transform.position.x < placeholderParent.GetChild(i).position.x) {
-
 				newSiblingIndex = i;
 
 				if(placeholder.transform.GetSiblingIndex() < newSiblingIndex)
@@ -53,11 +50,9 @@ public class Draggable : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
 		}
 
 		placeholder.transform.SetSiblingIndex(newSiblingIndex);
-
 	}
 	
 	public void OnEndDrag(PointerEventData eventData) {
-		
 
         
         this.transform.SetParent( parentToReturnTo );
@@ -70,14 +65,12 @@ public class Draggable : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
 
 
 
-
     }
 
     public void DestroyPlaceholder()
     {
         Destroy(placeholder);
     }
-	
 	
 	
 }

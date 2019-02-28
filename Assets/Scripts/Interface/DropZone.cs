@@ -38,7 +38,6 @@ public class DropZone : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoin
 	public void OnDrop(PointerEventData eventData) {
         if(eventData.pointerDrag.GetComponent<CardDisplay>().card.Type == CardType.Attack && gameObject.name.Contains("Field"))
         {
-          
                 Debug.Log(eventData.pointerDrag.name + " was dropped on " + gameObject.name);
 
 
@@ -51,11 +50,9 @@ public class DropZone : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoin
                 {
                     d.parentToReturnTo = this.transform;
                 }
-            
         }
         if (eventData.pointerDrag.GetComponent<CardDisplay>().card.Type == CardType.Structure && gameObject.name.Contains("Buildings"))
         {
-            
                 Debug.Log(eventData.pointerDrag.name + " was dropped on " + gameObject.name);
 
 
@@ -68,9 +65,7 @@ public class DropZone : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoin
                 {
                     d.parentToReturnTo = this.transform;
                 }
-            
         }
-
 
 
 

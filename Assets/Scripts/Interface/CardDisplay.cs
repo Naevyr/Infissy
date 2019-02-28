@@ -9,7 +9,6 @@ using UnityEngine.EventSystems;
 
 public class CardDisplay : MonoBehaviour
 {
-    
     public Card card;
     public Text title;
     public Image artwork;
@@ -24,24 +23,68 @@ public class CardDisplay : MonoBehaviour
     public Text firstMaterial;
     public Text money;
     private CardDisplayType displayType;
+
+
+
+    CardStatus cardStatus;
+    public CardStatus CardStatus
+    {
+        set {
+
+            //Eventual switch for various status
+
+            if (value == CardStatus.Selected)
+            {
+                for (int i = 0; i < transform.childCount; i++)
+                {
+                    if (gameObject.transform.GetChild(i).name == "CardEffect")
+                    {
+                        gameObject.transform.GetChild(i).GetComponent<SpriteRenderer>().enabled = true;
+                        gameObject.transform.GetChild(i).GetComponent<SpriteRenderer>().color = Color.red;
+                    }
+                }
+                
+            }
+            if(cardStatus == CardStatus.Normal)
+            {
+                for (int i = 0; i < transform.childCount; i++)
+                {
+                    if (gameObject.transform.GetChild(i).name == "CardEffect")
+                    {
+                        gameObject.transform.GetChild(i).GetComponent<SpriteRenderer>().enabled = false;
+                        
+                    }
+                }
+            }
+
+            cardStatus = value;
+        }
+        get
+        {
+            return cardStatus;
+        }
+    }
+
     
+
+
 
     
     private void Start()
     {
-
         
     }
-
 
     
 
     public void SetCard (Card card) {
-
         this.card = card;
-
         
     }
+
+
+
+
 
     public void RefreshValues(CardDisplayType displayType)
     {
@@ -49,7 +92,6 @@ public class CardDisplay : MonoBehaviour
         {
             Destroy(gameObject);
         }
-
 
         //Partial-full refresh needed
         switch (displayType)
@@ -69,11 +111,8 @@ public class CardDisplay : MonoBehaviour
                 artwork.sprite = card.CardImage;
                 absolute.text = card.Absolute.ToString();
                 break;
-
         }
-        
 
     }
-
  
 }

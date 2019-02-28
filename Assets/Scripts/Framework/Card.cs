@@ -10,9 +10,7 @@ namespace Infissy.Framework
 {
 
 
-
 public class Card {
-
     //Absolute, healable, desctructible e targetable rimangono private e descrivono lo stato attuale della carta, sono modificabili solo tramite metodi specifici.
     //
     //Le altre variabili non dovrebbero necessitare alcuna proprietà in quanto utilizzate principalmente per la visualizzazione, pensando di separarle in
@@ -22,14 +20,10 @@ public class Card {
     private bool destructible;
     private bool targetable;
 
-
     public int Absolute { get{ return absolute;} }
     public bool Healable { get{ return healable; } }
     public bool Destructible {get{return destructible;}}
     public bool Targetable { get{ return targetable;}}
-
-
-
 
         public delegate void CardDestroyedHandler(Card card,CardEventArgs args);
         public event CardDestroyedHandler OnDestroy;
@@ -54,8 +48,6 @@ public class Card {
     public int IDCard;
     
 
-
-
     public static Card Initialize (int IdCard,
                             string title,
                             Sprite cardImage,
@@ -70,7 +62,6 @@ public class Card {
                             string goldCost,
                             string resourceCost)
     {
-
             Card card = new Card();
             card.IDCard = IdCard;
         card.Title = title;
@@ -88,9 +79,7 @@ public class Card {
         card.Progress = progress;
         card.Type = type;
 
-
         switch(type){
-            
             //TODO:Struttura forse non curabile
             case CardType.Structure:
             case CardType.Attack:
@@ -103,7 +92,6 @@ public class Card {
                 card.destructible = false;
                 card.targetable = false;
                 break;
-
         }
 
             return card;
@@ -118,7 +106,6 @@ public class Card {
         if(absoluteValue >= 0){
                 if(healable == true){
                 absolute += absoluteValue;
-                
             }else{
                 affected = false;
             }
@@ -135,25 +122,20 @@ public class Card {
             }else{
                 absolute += absoluteValue;
             }
-            
         }
     
         return affected;
     }
-
 }
 
     public struct CardEffect{
-            
           
             public CardEffectTarget EffectTarget;
             public int EffectValue;
             public CardEffectType EffectType;
-
         
 
     }
-
 
     public class CardEventArgs : EventArgs
     {
@@ -171,9 +153,7 @@ public class Card {
             return sourceCard;
         }
 
-
     }
-
 
 
 }

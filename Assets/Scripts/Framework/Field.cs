@@ -17,9 +17,7 @@ public class Field
         public Player Player { get; private set; }
         public Player RemotePlayer { get; private set; }
 
-
         public static Field Initalize(Client Client, Player Player, Player RemotePlayer){
-
             Field field = new Field();
 
             field.Player = Player;
@@ -78,6 +76,7 @@ public class Field
                     
             case GamePhase.PlayPhase:
 
+
                     changePhaseButton = GameObject.FindObjectOfType<DisplayManager>().ChangePhaseButton;
                 
 
@@ -95,12 +94,20 @@ public class Field
                         {
                             clickPriority = ClickPriority.enemyFirstClick;
                         }
-                            
                         
 
                     }
                     else
                     {
+
+
+
+                        if (localPlayerMove == true)
+                        {
+                            Player.Client.SendCards(InteractedCards);
+                        }
+
+
                         int bufferLenght;
                         int movedCards;
 
@@ -135,25 +142,19 @@ public class Field
                                     if (i <  bufferLenght)
                                     {
                                         PlayCard(cardPlayBuffer[i], false);
-                                       
                                     }
                                     if (i <movedCards)
                                     {
                                         PlayCard(InteractedCards[i], true);
                                     }
-
                                     
                                 }
-
                             
                         }
 
                         
 
-                        if (localPlayerMove == true)
-                        {
-                            Player.Client.SendCards(InteractedCards);
-                        }
+                        
                         changePhaseButton.interactable= true;
 
                         GameObject.FindObjectOfType<DisplayManager>().RefreshCards();
@@ -204,11 +205,18 @@ public class Field
                     }
                     else
                     {
+
+                        if (localPlayerMove)
+                        {
+                            Player.Client.SendPlayedCards(InteractedCards, targetCards);
+                        }
+
+
                         int bufferLenght;
                         int movedCards;
 
                         if (cardPlayBuffer == null)
-                            bufferLenght = 0;
+                        bufferLenght = 0;
                         else
                             bufferLenght = cardPlayBuffer.Length;
                         if (InteractedCards == null)
@@ -225,32 +233,31 @@ public class Field
                                 {
                                     if (i < bufferLenght)
                                     {
-                                        MoveCard(cardPlayBuffer[i], true, cardTargetBuffer[i]);
+                                        if (cardPlayBuffer != null)
+                                            MoveCard(cardPlayBuffer[i], true, cardTargetBuffer[i]);
                                     }
                                     if (i < movedCards)
                                     {
-                                        MoveCard(InteractedCards[i], false, targetCards[i]);
+                                        if (InteractedCards != null)
+                                            MoveCard(InteractedCards[i], false, targetCards[i]);
                                     }
                                 }
                                 else
                                 {
                                     if (i < bufferLenght)
                                     {
-                                        MoveCard(cardPlayBuffer[i], false,cardTargetBuffer[i]);
+                                         MoveCard(cardPlayBuffer[i], false,cardTargetBuffer[i]);
                                     }
                                     if (i < movedCards)
                                     {
-                                        MoveCard(InteractedCards[i], localPlayerMove: true,cardTargetBuffer[i]);
+                                        MoveCard(InteractedCards[i], localPlayerMove: true,targetCards[i]);
                                     }
                                 }
                             }
                         
 
                         
-                        if (localPlayerMove == true)
-                        {
-                            Player.Client.SendPlayedCards(InteractedCards,targetCards);
-                        }
+                        
                         changePhaseButton.interactable = true;
 
                         GameObject.FindObjectOfType<DisplayManager>().RefreshCards();
@@ -275,7 +282,6 @@ public class Field
 
         private void CardDestroyed(Card card, CardEventArgs args)
         {
-
 
         }
 
@@ -341,7 +347,6 @@ public class Field
 
     public void PlayCard(Card card, bool localPlayerMove){
             
-            
             if (localPlayerMove)
             {
                 Player.PlayCard(card);
@@ -350,7 +355,6 @@ public class Field
             {
                 RemotePlayer.PlayCard(card);
             }
-            
 
     }
             
@@ -392,7 +396,6 @@ public class Field
                                             targetCards[targetIndex].AffectCard(effect.EffectValue);
 
                                             break;
-
                                     }
                                     break;
                                 case CardEffectType.PercentualIncrement:
@@ -510,7 +513,6 @@ public class Field
                                             targetCards[targetIndex].AffectCard(effect.EffectValue);
 
                                             break;
-
                                     }
                                     break;
                                 case CardEffectType.PercentualIncrement:
@@ -593,7 +595,6 @@ public class Field
                     }
                 }
             }
-
        
        
     }

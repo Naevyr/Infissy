@@ -7,10 +7,10 @@ namespace Infissy.Framework
     public class Player
     {
 
-
         Client client;
         bool localPlayer;
-
+        public delegate void PlayerAffectHandler(Player player, PlayerEventArgs args);
+        public event PlayerAffectHandler OnDestroy;
         //Ottimizzazione sucessiva da fare
         private int gold;
         private int population;
@@ -22,8 +22,6 @@ namespace Infissy.Framework
         bool healable=true;
         bool targetable=true;
         private int progress=0;
-
-
 
         public int Gold { get { return gold; } }
         public int Population { get { return population; } }
@@ -50,14 +48,22 @@ namespace Infissy.Framework
             }
         }
 
-
-
-
         public void Draw()
         {
-            handCards.Add(deckCards.Pop());
+            if (deckCards.Count != 0)
+            {
+                handCards.Add(deckCards.Pop());
+            }
+            else
+            {
+                for (int i = 0; i < graveyardCards.Count; i++)
+                {
+                    //Eventual shuffle in case of 
+                    deckCards.Push(graveyardCards[i]);
+                    graveyardCards.RemoveAt(i);
+                }
+            }
         }
-
 
         public void Draw(int nCard)
         {
@@ -69,34 +75,29 @@ namespace Infissy.Framework
 
         public void PlayCard(Card card){
                 for(int i = 0; i < handCards.Count; i++)
-            {
-
+                {
                 if (handCards[i] == card)
                 {
-
-                    inFieldCards[(int)card.Type].Add(card);
-                    handCards.Remove(handCards[i]);
-                    card.OnDestroy += Player_OnCardDestroy;
+                    bool playerAffected = true;
                     if (card.SpawnEffects != null)
                     {
                         foreach (var effect in card.SpawnEffects)
                         {
-
                             switch (effect.EffectType)
                             {
                                 case CardEffectType.ValueIncrement:
-                                    AffectPlayer(effect.EffectValue, effect.EffectTarget);
-                                    break;
 
+                                    playerAffected = AffectPlayer(effect.EffectValue, effect.EffectTarget);
+
+
+                                    break;
 
                                 case CardEffectType.PercentualIncrement:
 
                                     int playerAffectedResource = 0;
 
-
                                     switch (effect.EffectTarget)
                                     {
-
                                         case CardEffectTarget.AllyGold:
                                             playerAffectedResource = gold;
                                             break;
@@ -108,45 +109,47 @@ namespace Infissy.Framework
                                         case CardEffectTarget.AllyResources:
                                             playerAffectedResource = Resources;
                                             break;
-
                                     }
 
                                     int operationValue;
                                     operationValue = playerAffectedResource * effect.EffectValue / 100;
 
-
-                                    AffectPlayer(operationValue, effect.EffectTarget);
+                                    playerAffected = AffectPlayer(operationValue, effect.EffectTarget);
                                     break;
-
                             }
-
                         }
+                        if (playerAffected)
+                        {
+                            inFieldCards[(int)card.Type].Add(card);
+                            handCards.Remove(handCards[i]);
+                            card.OnDestroy += Player_OnCardDestroy;
+                        }
+                       
 
                     }
                 }
             }
         }
 
-
         
 
-
-        public void AffectPlayer(int effectValue, CardEffectTarget affectTarget)
+        public bool AffectPlayer(int effectValue, CardEffectTarget affectTarget)
         {
-           
-
+            bool playerAffected = true;
             switch (affectTarget)
             {
 
-
                 //Affect gold
                 case CardEffectTarget.AllyGold:
-                    gold += effectValue;
+                    if (gold + effectValue >= 0)
+                        gold += effectValue;
+                    else
+                        playerAffected = false;
+                    
                     break;
 
                 //Affect population
                 case CardEffectTarget.AllyPopulation:
-
 
                     if (effectValue >= 0)
                     {
@@ -154,42 +157,38 @@ namespace Infissy.Framework
                         {
                             population += effectValue;
                         }
-                        
                     }
                     else
                     {
                         //Damaging 
                         if ((population + effectValue) < 0)
                         {
-
                             population = 0;
-                            
+                            OnDestroy.Invoke(this, new PlayerEventArgs());
                         }
                         else
                         {
                             population += effectValue;
                         }
-
                     }
 
                     break;
 
                 //Affect Resources
                 case CardEffectTarget.AllyResources:
-                    if ((resources + effectValue) < 0)
-                    {
-                        resources = 0;
-                    }
+                    if (resources + effectValue >= 0)
+                            resources += effectValue;
+                    else
+                        playerAffected = false;
                     break;
             }
-
-           
+            return playerAffected;
         }
 
         internal void Player_OnCardDestroy(Card card, CardEventArgs args)
         {
-             inFieldCards[(int)card.Type].Remove(card);
-            graveyardCards.Add(card);  
+            inFieldCards[(int)card.Type].Remove(card);
+            graveyardCards.Add(card);
         }
 
         public void SetPlayerStatus(CardEffectTarget status, bool Healable_Targetable)
@@ -203,10 +202,7 @@ namespace Infissy.Framework
                     targetable = Healable_Targetable;
                     break;
             }
-
         }
-
-
 
         /// <summary>
         /// Player initialize, returns a player instance with set values;
@@ -225,9 +221,7 @@ namespace Infissy.Framework
                                bool localPlayer)
         {
 
-
             
-
 
             Player player = new Player();
 
@@ -244,5 +238,10 @@ namespace Infissy.Framework
             return player;
         }
 
+
+        public class PlayerEventArgs : EventArgs {
+
+           
+        }
     }
 }

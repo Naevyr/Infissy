@@ -8,7 +8,6 @@ using UnityEngine;
 
 public class Server : MonoBehaviour
 {
-
     // Use this for initialization
     public int port = 6312;
 
@@ -36,9 +35,7 @@ public class Server : MonoBehaviour
         catch (Exception e)
         {
             Debug.Log("Socket:" + e.Message);
-
         }
-
 
     }
 
@@ -69,7 +66,6 @@ public class Server : MonoBehaviour
                     }
                 }
             }
-
         }
 
         for (int i = 0; i < disconnectList.Count - 1; i++)
@@ -79,7 +75,6 @@ public class Server : MonoBehaviour
             clients.Remove(disconnectList[i]);
             disconnectList.RemoveAt(i);
         }
-
     }
 
     private void StartListening()
@@ -123,7 +118,6 @@ public class Server : MonoBehaviour
         catch (Exception)
         {
             return false;
-
         }
     }
     //Send Server
@@ -139,7 +133,6 @@ public class Server : MonoBehaviour
             }
             catch (Exception e)
             {
-
                 Debug.Log("Write error:" + e.Message);
             }
         }
@@ -154,7 +147,6 @@ public class Server : MonoBehaviour
     //Read Server
     private void OnIncomingData(ServerClient c, string data)
     {
-      
 
         var aData = data.Split('|');
         switch (aData[0])
@@ -185,7 +177,6 @@ public class Server : MonoBehaviour
                     writer.Flush();
                 }
                 break;
-            
         }
     }
 }

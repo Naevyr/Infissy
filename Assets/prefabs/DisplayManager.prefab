@@ -44,12 +44,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f06814655342f6a448c41442ef554fd7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  HandCard: {fileID: 1966071329730538, guid: 8d19a1f3948b77a45a3b30009a8e2185, type: 3}
-  BuildingCard: {fileID: 1793628867623548, guid: 67ec98102840f8045a0c22b3095d20dd,
+  HandCardPrefab: {fileID: 1966071329730538, guid: 8d19a1f3948b77a45a3b30009a8e2185,
     type: 3}
-  UnitCard: {fileID: 1643678677048686, guid: 5b27b486890e5974284025e85969bcb2, type: 3}
+  BuildingCardPrefab: {fileID: 1643678677048686, guid: 5b27b486890e5974284025e85969bcb2,
+    type: 3}
+  UnitCardPrefab: {fileID: 1643678677048686, guid: 5b27b486890e5974284025e85969bcb2,
+    type: 3}
+  GameStatus: {fileID: 0}
   playerDisplayProgress: {fileID: 0}
   remotePlayerDisplayProgress: {fileID: 0}
+  ChangePhaseButton: {fileID: 0}
 --- !u!114 &2278164970178953382
 MonoBehaviour:
   m_ObjectHideFlags: 0
