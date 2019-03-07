@@ -111,13 +111,14 @@ public class Card {
             }
         }else{
             //Damaging 
-            if((absolute + absoluteValue) < 0 ){
+            if((absolute + absoluteValue) <= 0 ){
                 if(destructible == true){
-                    //DestroyCard()
-                    
-                }else{
-                    absolute = 0;
+                        absolute = 0;
                         OnDestroy.Invoke(this, new CardEventArgs(this, CardEventType.cardDestroyed));
+
+                    }
+                    else{
+                        absolute = 1;
                 }
             }else{
                 absolute += absoluteValue;

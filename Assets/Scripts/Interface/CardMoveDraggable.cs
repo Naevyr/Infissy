@@ -18,7 +18,7 @@ public class CardMoveDraggable : MonoBehaviour, IBeginDragHandler,IDragHandler, 
         cardPointer = GetComponent<CardDisplay>().card;
         targetBuffer = new Card[cardPointer.Effects.Length];
            
-        if(cardPointer.Type == Infissy.Properties.CardProperties.CardType.Attack)
+        if(cardPointer.Type == Infissy.Properties.CardProperties.CardType.Attack && transform.parent.name == "Field")
         {
             IsDragable = true;
         }
@@ -45,10 +45,11 @@ public class CardMoveDraggable : MonoBehaviour, IBeginDragHandler,IDragHandler, 
     public void OnBeginDrag(PointerEventData eventData)
     {
         Debug.Log("OnBeginDrag");
-        if (IsDragable == false )
+        if (!IsDragable)
             return;
         else
             positionBuffer = transform.position;
+       
     }
 
     public void OnEndDrag(PointerEventData eventData)

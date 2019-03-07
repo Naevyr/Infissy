@@ -6,8 +6,8 @@ using static Infissy.Properties.CardProperties;
 using static Infissy.Properties.GameProperties;
 namespace Infissy.Framework
 {
-public class Field 
-{
+   public class Field 
+        {
         Button changePhaseButton;
         ClickPriority clickPriority = ClickPriority.notYetDefined;
 
@@ -16,6 +16,10 @@ public class Field
         public GamePhase GamePhase { get; private set; }
         public Player Player { get; private set; }
         public Player RemotePlayer { get; private set; }
+
+
+        //Temp
+        public DisplayManager displayManager { get; set; }
 
         public static Field Initalize(Client Client, Player Player, Player RemotePlayer){
             Field field = new Field();
@@ -72,10 +76,11 @@ public class Field
                     GamePhase = GamePhase.PlayPhase;
                     GameObject.FindObjectOfType<DisplayManager>().RefreshCards();
                     GameObject.FindObjectOfType<DisplayManager>().RefreshValues();
+                    displayManager.HandInteraction = true;
                     break;
                     
             case GamePhase.PlayPhase:
-
+                    
 
                     changePhaseButton = GameObject.FindObjectOfType<DisplayManager>().ChangePhaseButton;
                 
@@ -88,13 +93,16 @@ public class Field
                         {
                             clickPriority = ClickPriority.localFirstClick;
                             Player.Client.SendCards(InteractedCards);
+                            //Temp
+                            displayManager.HandInteraction = false;
+                            displayManager.FieldUnitInteraction = false;
                             changePhaseButton.interactable = false;
                         }
                         else
                         {
                             clickPriority = ClickPriority.enemyFirstClick;
                         }
-                        
+                        GameObject.FindObjectOfType<DisplayManager>().PhaseMessage = "PlayPhaseSecondPart";
 
                     }
                     else
@@ -154,16 +162,17 @@ public class Field
 
                         
 
-                        
+                        //Temp
                         changePhaseButton.interactable= true;
-
+                        displayManager.FieldUnitInteraction = true;
                         GameObject.FindObjectOfType<DisplayManager>().RefreshCards();
 
-                        
+                        displayManager.HandInteraction = false;
                         GameObject.FindObjectOfType<DisplayManager>().RefreshValues();
                         GamePhase = GamePhase.AttackPhase;
                         clickPriority = ClickPriority.notYetDefined;
                         cardPlayBuffer = null;
+                        GameObject.FindObjectOfType<DisplayManager>().PhaseMessage = "AttackPhase";
                     }
 
                    
@@ -180,9 +189,9 @@ public class Field
             case GamePhase.AttackPhase:
                     //Interaction
                     //Eventual moveCard calfrom her
+                    
 
-                   
-
+                    
                     //
 
                     if (clickPriority == ClickPriority.notYetDefined)
@@ -197,6 +206,8 @@ public class Field
                             clickPriority = ClickPriority.localFirstClick;
                             Player.Client.SendPlayedCards(InteractedCards,targetCards);
                             changePhaseButton.interactable = false;
+                            displayManager.HandInteraction = false;
+                            displayManager.FieldUnitInteraction = false;
                         }
                         else
                         {
@@ -231,17 +242,24 @@ public class Field
                             {
                                 if (clickPriority == ClickPriority.localFirstClick)
                                 {
-                                    if (i < bufferLenght)
+
+                                    if (i < bufferLenght && cardPlayBuffer[i] != null)
                                     {
-                                        if (cardPlayBuffer != null)
                                             MoveCard(cardPlayBuffer[i], true, cardTargetBuffer[i]);
+                                       
+                                        
                                     }
-                                    if (i < movedCards)
+
+                                    if (i < movedCards && InteractedCards[i] != null)
                                     {
-                                        if (InteractedCards != null)
+                                     
+                                       
                                             MoveCard(InteractedCards[i], false, targetCards[i]);
+                                       
+
+
                                     }
-                                }
+                            }
                                 else
                                 {
                                     if (i < bufferLenght)
@@ -250,27 +268,33 @@ public class Field
                                     }
                                     if (i < movedCards)
                                     {
-                                        MoveCard(InteractedCards[i], localPlayerMove: true,targetCards[i]);
+                                       
+                                            MoveCard(InteractedCards[i], localPlayerMove: true, targetCards[i]);
+                                      
+                                      
                                     }
                                 }
                             }
-                        
 
-                        
-                        
+
+                        //Temp
+
                         changePhaseButton.interactable = true;
 
+                        displayManager.HandInteraction = true;
+
                         GameObject.FindObjectOfType<DisplayManager>().RefreshCards();
-                        
+                       
 
                         GameObject.FindObjectOfType<DisplayManager>().RefreshValues();
-
+                        GameObject.FindObjectOfType<DisplayManager>().PhaseMessage = "DrawPhase";
                         GamePhase = GamePhase.DrawPhase;
+                        
                         clickPriority = ClickPriority.notYetDefined;
                         cardPlayBuffer = null;
                         cardTargetBuffer = null;
+                        displayManager.FieldUnitInteraction = false;
 
-                        
                         ChangePhase(null, null, true);
                     }
 
@@ -364,17 +388,20 @@ public class Field
     
     public void MoveCard(Card card, bool localPlayerMove, Card[] targetCards)
     {   
-        if(localPlayerMove == true)
+        if(localPlayerMove)
             {
                 int targetIndex = 0;
                 if(card != null)
                 {
                     foreach (var effect in card.Effects)
                     {
+                        var effectTarget = effect.EffectTarget;
                         if (effect.EffectTarget != CardEffectTarget.None)
                         {
+                            EnemyPlayerAttack:
                             switch (effect.EffectType)
                             {
+                               
                                 //Flat Value Effect     
                                 case CardEffectType.ValueIncrement:
                                     switch (effect.EffectTarget)
@@ -387,14 +414,25 @@ public class Field
                                         case CardEffectTarget.EnemyGold:
                                         case CardEffectTarget.EnemyPopulation:
                                         case CardEffectTarget.EnemyResources:
+                                            
                                             RemotePlayer.AffectPlayer(effect.EffectValue, effect.EffectTarget - 5);
                                             break;
                                         case CardEffectTarget.AllyStructure:
                                         case CardEffectTarget.AllyUnit:
                                         case CardEffectTarget.EnemyStructure:
                                         case CardEffectTarget.EnemyUnit:
-                                            targetCards[targetIndex].AffectCard(effect.EffectValue);
-
+                                            var effectValue = -card.Absolute;
+                                            //Temp
+                                            if(targetCards[targetIndex] != null && targetCards[targetIndex].Absolute > 0)
+                                            {
+                                                targetCards[targetIndex].AffectCard(effectValue);
+                                            }
+                                                
+                                            else
+                                            {
+                                                effectTarget = CardEffectTarget.EnemyPopulation;
+                                             goto EnemyPlayerAttack;
+                                            }
                                             break;
                                     }
                                     break;
@@ -488,8 +526,10 @@ public class Field
                 {
                     foreach (var effect in card.Effects)
                     {
+                        var effectTarget = effect.EffectTarget;
                         if (effect.EffectTarget != CardEffectTarget.None)
                         {
+                        EnemyPlayerAttack:
                             switch (effect.EffectType)
                             {
                                 //Flat Value Effect     
@@ -510,8 +550,18 @@ public class Field
                                         case CardEffectTarget.AllyUnit:
                                         case CardEffectTarget.EnemyStructure:
                                         case CardEffectTarget.EnemyUnit:
-                                            targetCards[targetIndex].AffectCard(effect.EffectValue);
+                                            var effectValue = -card.Absolute;
+                                            if (targetCards[targetIndex] != null && targetCards[targetIndex].Absolute > 0)
+                                            {
+                                                targetCards[targetIndex].AffectCard(effectValue);
+                                            }
 
+                                            else
+                                            {
+                                                effectTarget = CardEffectTarget.EnemyPopulation;
+                                                goto EnemyPlayerAttack;
+                                            }
+                                           
                                             break;
                                     }
                                     break;

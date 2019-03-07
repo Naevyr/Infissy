@@ -32,6 +32,8 @@ public class DisplayManager : MonoBehaviour
     List<Card[]> targetCardBuffer = null;
 
     bool handInteractable;
+    bool fieldCardsInteractable;
+
     string phaseMessage;
     bool fieldUnitInteractable;
     bool enemyCardsSelected;
@@ -104,7 +106,32 @@ public class DisplayManager : MonoBehaviour
             }
             handInteractable = value;
         } get { return handInteractable; } }
-        
+
+    public bool FieldUnitInteraction
+    {
+        set
+        {
+            var fields = GameObject.FindGameObjectsWithTag("Field");
+            GameObject enemyField;
+
+            if (fields[0].name == "Field")
+            {
+                enemyField = fields[0];
+            }
+            else
+            {
+                enemyField = fields[1];
+            }
+
+            for (int i = 0; i < enemyField.transform.childCount; i++)
+            {
+                enemyField.transform.GetChild(i).GetComponent<CardMoveDraggable>().enabled = value;
+            }
+            fieldCardsInteractable = value;
+        }
+        get { return fieldCardsInteractable; }
+    }
+
     public bool EnemyCardsSelected {
 
         set
@@ -153,6 +180,7 @@ public class DisplayManager : MonoBehaviour
 
     private void InitializeChangePhaseReferences()
     {
+
         GameStatus = GameObject.FindGameObjectWithTag("GameStatusText").GetComponent<Text>();
         (ChangePhaseButton = GameObject.FindGameObjectWithTag("ChangePhaseButton").GetComponent<Button>()).onClick.AddListener(OnChangePhaseButtonClick);
         
@@ -195,6 +223,8 @@ public class DisplayManager : MonoBehaviour
     {
         var gameManager = (GameManager)FindObjectOfType(typeof(GameManager));
         field = gameManager.field;
+
+        field.displayManager = this;
         RefreshValues();
 
        
@@ -233,7 +263,7 @@ public class DisplayManager : MonoBehaviour
     public void OnChangePhaseButtonClick()
     {
         switch (field.GamePhase)
-        {
+        {  //Fix field displaymanaged doing the same thing
             case Infissy.Properties.GameProperties.GamePhase.DrawPhase:
 
                 ColorBlock buttonColor = ChangePhaseButton.colors;
@@ -244,7 +274,7 @@ public class DisplayManager : MonoBehaviour
 
                 
                 RefreshCards();
-                HandInteraction = true;
+               
                 PhaseMessage = "Draw";
                 break;
             case Infissy.Properties.GameProperties.GamePhase.PlayPhase:
@@ -253,26 +283,19 @@ public class DisplayManager : MonoBehaviour
                 buttonColorAttack.normalColor = Color.blue;
                 ChangePhaseButton.colors = buttonColorAttack;
 
-                HandInteraction = false;
+                
                 PhaseMessage = "Attack Phase";
                 field.ChangePhase(cardBufferPhase.ToArray(), null, true);
                
                
-                if(field.GamePhase == Infissy.Properties.GameProperties.GamePhase.AttackPhase)
-                {
-                    PhaseMessage = "Move Phase";
-                }
-                else
-                {
-                    PhaseMessage = "Attack Phase Second part";
-                }
+               
                 RefreshValues();
                 break;
             case Infissy.Properties.GameProperties.GamePhase.MovePhase:
             case Infissy.Properties.GameProperties.GamePhase.AttackPhase:
                 RefreshCards();
                 RefreshValues();
-                HandInteraction = false;
+             
                 if (movedCardBuffer != null)
                 {
                     field.ChangePhase(movedCardBuffer.ToArray(), targetCardBuffer.ToArray(), true);
@@ -290,7 +313,7 @@ public class DisplayManager : MonoBehaviour
 
                 RefreshCards();
                 RefreshValues();
-                HandInteraction = false;
+               
                 break;
             default:
                 break;
@@ -351,7 +374,9 @@ public class DisplayManager : MonoBehaviour
                 prefabIst.transform.SetParent(displayHand.transform);
                 prefabIst.transform.SetAsLastSibling();
         }
-       
+
+
+        HandInteraction = handInteractable;
 
         if (displayFields[0].name == "Field")
         {
