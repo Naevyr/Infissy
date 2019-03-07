@@ -626,6 +626,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\EnemyDrop.cs" />
     <Compile Include="Assets\GameObjectScripts\CardScript.cs" />
     <Compile Include="Assets\Refresh.cs" />
     <Compile Include="Assets\Scripts\Framework\Card.cs" />

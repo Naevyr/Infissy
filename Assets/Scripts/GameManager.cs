@@ -15,8 +15,6 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; set; }
     public GameObject mainMenu;
-    public GameObject serverMenu;
-    public GameObject connectMenu;
 
     public GameObject serverPrefab;
     public GameObject clientPrefab;
@@ -26,8 +24,11 @@ public class GameManager : MonoBehaviour
     public Field field { set; get; }
     public DBCaller DBCaller;
 
-    Client c;
+    Client client;
 
+
+    int port = 6312;
+    int clientID;
 
     public InputField nameInput;
 
@@ -36,118 +37,107 @@ public class GameManager : MonoBehaviour
     void Start()
     {
         Instance = this;
-        serverMenu.SetActive(false);
-        connectMenu.SetActive(false);
+        
         DontDestroyOnLoad(gameObject);
     }
 
     public void ConnectButton()
     {
-        mainMenu.SetActive(false);
-        connectMenu.SetActive(true);
+        StartCoroutine(ConnectToServer());
+        
+
     }
-    public void HostButton()
+
+    IEnumerator ConnectToServer()
     {
-        try
+
+        
+        var clientPrefabIstance = Instantiate(clientPrefab);
+        client = clientPrefabIstance.GetComponent<Client>();
+
+        var selected = GameObject.FindGameObjectWithTag("TempLabel").GetComponent<Dropdown>().value;
+        if (selected == 0)
+            clientID = 2;
+        else
+            clientID = 4;
+        
+
+   
+
+        var serverRequest = UnityWebRequest.Get("http://icanhazip.com");
+
+        yield return serverRequest.SendWebRequest();
+        string externalip = serverRequest.downloadHandler.text;
+
+        externalip = externalip.Remove(externalip.Length-2);
+
+        serverRequest = UnityWebRequest.Get("http://www.bargiua.it/Infissy/Matmak/addqueue.aspx?utente=" + clientID.ToString() + "&ip=" + externalip + "&port=" + port);
+
+        yield return serverRequest.SendWebRequest();
+
+
+        string serverInfo = "";
+
+        
+        serverRequest = UnityWebRequest.Get("http://www.bargiua.it/Infissy/Matmak/AskQueue.aspx?utente=" + clientID.ToString());
+        yield return serverRequest.SendWebRequest();
+
+        serverInfo = serverRequest.downloadHandler.text;
+
+        if (!serverInfo.Contains('#'))
         {
-            Server s = Instantiate(serverPrefab).GetComponent<Server>();
-            s.Init();
-
-            c = Instantiate(clientPrefab).GetComponent<Client>();
-            
-            
-            //Temp
-            
-            
-
-
-
-            c.clientName = nameInput.text;
-            c.isHost = true;
-            if (c.clientName == "")
-                c.clientName = "Server/Host";
-            c.ConnectToServer("127.0.0.1", 6312);
-        }
-        catch (Exception e)
-        {
-            Debug.Log(e.Message);
-        }
-
-        mainMenu.SetActive(false);
-        serverMenu.SetActive(true);
-    }
- 
-
-    public void LoginButton(string userin/* temp*/,string passwin)
-    {
-        DBCaller.Utente utente=null;
-        try
-        {
-           utente= DBCaller.UtentiData.First(x => x.NomeUtente == userin);
-        }
-        catch{}
-        if (utente==null)
-        {
-            Debug.Log("Utente non trovato");
+           client.ListenForRemote(port);
         }
         else
         {
-            if (utente.Password==passwin)
+            var remoteInfo = serverInfo.Split('#')[1].Split(';');
+
+            try
             {
-                Debug.Log("Login OK");
+                client.ConnectToRemote(remoteInfo[1], port);
             }
-            else
+            catch (Exception e)
             {
-                Debug.Log("Password errata");
+
+                Debug.Log(e.Message);
             }
-        }
-
-        
-    }
-    public void ConnectToServerButton()
-    {
-        string hostAddress = GameObject.Find("HostInput").GetComponent<InputField>().text;
-        if (hostAddress == "")
-            hostAddress = "127.0.0.1";
-
-        try
-        {
-            c = Instantiate(clientPrefab).GetComponent<Client>();
-
             
-            c.clientName = nameInput.text;
-            if (c.clientName == "")
-                c.clientName = "Client";
-            c.ConnectToServer(hostAddress, 6312);
-            connectMenu.SetActive(true);
+            foreach (var item in remoteInfo)
+            {
+                Debug.Log(item);
+            }
+            serverRequest = UnityWebRequest.Get("http://www.bargiua.it/Infissy/Matmak/EndQueue.aspx?utente=" + clientID.ToString());
+            yield return serverRequest.SendWebRequest();
+            serverRequest = UnityWebRequest.Get("http://www.bargiua.it/Infissy/Matmak/EndQueue.aspx?utente=" + clientID.ToString());
+            yield return serverRequest.SendWebRequest();
+
         }
-        catch (Exception e)
+
+        while (!client.IsConnected)
         {
-            Debug.Log(e.Message);
+            yield return new WaitForSeconds(0.1f);
         }
-    }
 
-    public void BackButton()
-    {
-        mainMenu.SetActive(true);
-        serverMenu.SetActive(false);
-        connectMenu.SetActive(false);
-        Server s = FindObjectOfType<Server>();
-        if (s != null)
-            Destroy(s.gameObject);
 
-        Client c = FindObjectOfType<Client>();
-        if (c != null)
-            Destroy(c.gameObject);
-    }
-    public void StartGame()
-    {
+
+
+
+       
+
         StartCoroutine(FieldInitializationCoroutine());
-        SceneManager.LoadScene("Game");
+
+        SceneManager.LoadScene(1);
+
+
+
     }
 
+    
+    
+   
+    
 
-
+   
 
 
 
@@ -254,15 +244,15 @@ public class GameManager : MonoBehaviour
        
        
         
-        if(c.isHost == true)
+        if(client.isHost == true)
         {
-            c.FieldReference = Field.Initalize(c, Player.Initialize(new Stack<Card>(deck), 5, 500, 500, 500, true), Player.Initialize(new Stack<Card>(deck2), 5, 500, 500, 500, true));
+            client.FieldReference = Field.Initalize(client, Player.Initialize(new Stack<Card>(deck), 5, 500, 500, 500, true), Player.Initialize(new Stack<Card>(deck2), 5, 500, 500, 500, true));
         }
         else
         {
-            c.FieldReference = Field.Initalize(c, Player.Initialize(new Stack<Card>(deck2), 5, 500, 500, 500, true), Player.Initialize(new Stack<Card>(deck), 5, 500, 500, 500, true));
+            client.FieldReference = Field.Initalize(client, Player.Initialize(new Stack<Card>(deck2), 5, 500, 500, 500, true), Player.Initialize(new Stack<Card>(deck), 5, 500, 500, 500, true));
         }
-        field = c.FieldReference;
+        field = client.FieldReference;
         field.Player.OnDestroy += RestartGame;
         field.RemotePlayer.OnDestroy += RestartGame;
         Instantiate(displayManagerPrefab);

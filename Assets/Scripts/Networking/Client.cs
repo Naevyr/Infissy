@@ -9,9 +9,10 @@ public class Client : MonoBehaviour
 {
     public string clientName;
     public bool isHost;
+    public bool IsConnected = false;
 
     private bool socketReady;
-    private TcpClient socket;
+    public TcpClient tcpClient;
     private NetworkStream stream;
     private StreamWriter writer;
     private StreamReader reader;
@@ -22,23 +23,24 @@ public class Client : MonoBehaviour
 
     private List<GameClient> players = new List<GameClient>();
 
-    private void Start()
-    {
-        DontDestroyOnLoad(gameObject);
-    }
+    
+
     //Sistemare Inizializzazione
-    public bool ConnectToServer(string host, int port)
+    public bool ConnectToRemote(string host, int port)
     {
         if (socketReady)
             return false;
         try
         {
-            socket = new TcpClient(host, port);
-            stream = socket.GetStream();
+            tcpClient = new TcpClient(host, port);
+
+            
+            stream = tcpClient.GetStream();
             writer = new StreamWriter(stream);
             reader = new StreamReader(stream);
 
             socketReady = true;
+            IsConnected = true;
         }
         catch (Exception e)
         {
@@ -46,19 +48,32 @@ public class Client : MonoBehaviour
         }
         return socketReady;
     }
-
-    private void Update()
+    
+    public void ListenForRemote(int port)
     {
-        if (socketReady)
-        {
-            if (stream.DataAvailable)
-            {
-                string data = reader.ReadLine();
-                if (data != null)
-                    OnIncomingData(data);
-            }
-        }
+        TcpListener listener = new TcpListener(System.Net.IPAddress.Any,port);
+        listener.Start();
+
+        listener.BeginAcceptTcpClient(new AsyncCallback(OnClientConnected), listener) ;
+        
+        
     }
+
+   
+    public void OnClientConnected(IAsyncResult result)
+    {
+        TcpListener listener = (TcpListener)result.AsyncState;
+        
+        tcpClient = listener.EndAcceptTcpClient(result);
+        reader = new StreamReader(tcpClient.GetStream());
+        writer = new StreamWriter(tcpClient.GetStream());
+        IsConnected = true;
+        CheckAvailableData();
+        Debug.Log("Connected To Remote");
+
+    }
+
+
     //Send message to server
     public void Send(string data)
     {
@@ -129,17 +144,7 @@ public class Client : MonoBehaviour
         var aData = data.Split('|');
         switch (aData[0])
         {
-            case "SWHO":
-                for (int i = 1; i < aData.Length - 1; i++)
-                {
-                    UserConnected(aData[i], false);
-                }
-                Send("CWHO|" + clientName + "|" + (isHost ? 1 : 0).ToString());
-                break;
-            case "SCNN":
-                UserConnected(aData[1], false);
-                break;
-
+            
             case "SPLY":
 
                 var cardsPlayedIDs = aData[1].Split(':');
@@ -180,6 +185,7 @@ public class Client : MonoBehaviour
                         {
                             if (cardTargetsIDs[i] != "")
                                 cardsTarget.Add(FieldReference.FindCard(int.Parse(cardTargetsIDs[i])));
+                           
                             else
                             {
                                 cardsTarget.Add(null);
@@ -225,20 +231,21 @@ public class Client : MonoBehaviour
                 break;
 
         }
+
+        CheckAvailableData();
+
     }
-    private void UserConnected(string name, bool host)
+
+    private void CheckAvailableData()
     {
-        GameClient c = new GameClient();
-        c.name = name;
-
-        players.Add(c);
-
-        if (players.Count == 2)
+        if (socketReady && stream.DataAvailable)
         {
-            GameManager.Instance.StartGame();
+            string data = reader.ReadLine();
+            if (data != null)
+                OnIncomingData(data);
         }
-
     }
+
     private void OnApplicationQuit()
     {
         CloseSocket();
@@ -256,7 +263,7 @@ public class Client : MonoBehaviour
         }
         writer.Close();
         reader.Close();
-        socket.Close();
+        tcpClient.Close();
         socketReady = false;
     }
 
