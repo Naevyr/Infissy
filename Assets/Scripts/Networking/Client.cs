@@ -54,7 +54,9 @@ public class Client : MonoBehaviour
         TcpListener listener = new TcpListener(System.Net.IPAddress.Any,port);
         listener.Start();
 
-        listener.BeginAcceptTcpClient(new AsyncCallback(OnClientConnected), listener) ;
+        tcpClient = listener.AcceptTcpClient();
+
+        //listener.BeginAcceptTcpClient(OnClientConnected, listener) ;
         
         
     }
@@ -63,8 +65,12 @@ public class Client : MonoBehaviour
     public void OnClientConnected(IAsyncResult result)
     {
         TcpListener listener = (TcpListener)result.AsyncState;
-        
+       
         tcpClient = listener.EndAcceptTcpClient(result);
+
+
+
+        listener.Stop();
         reader = new StreamReader(tcpClient.GetStream());
         writer = new StreamWriter(tcpClient.GetStream());
         IsConnected = true;

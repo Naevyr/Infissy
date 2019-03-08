@@ -46,7 +46,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   HandCardPrefab: {fileID: 1966071329730538, guid: 8d19a1f3948b77a45a3b30009a8e2185,
     type: 3}
-  BuildingCardPrefab: {fileID: 1643678677048686, guid: 5b27b486890e5974284025e85969bcb2,
+  BuildingCardPrefab: {fileID: 1793628867623548, guid: 67ec98102840f8045a0c22b3095d20dd,
     type: 3}
   UnitCardPrefab: {fileID: 1643678677048686, guid: 5b27b486890e5974284025e85969bcb2,
     type: 3}

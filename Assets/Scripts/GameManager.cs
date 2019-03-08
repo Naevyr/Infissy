@@ -27,7 +27,7 @@ public class GameManager : MonoBehaviour
     Client client;
 
 
-    int port = 6312;
+    int port = 80;
     int clientID;
 
     public InputField nameInput;
@@ -60,8 +60,8 @@ public class GameManager : MonoBehaviour
             clientID = 2;
         else
             clientID = 4;
-        
 
+        
    
 
         var serverRequest = UnityWebRequest.Get("http://icanhazip.com");
@@ -94,7 +94,7 @@ public class GameManager : MonoBehaviour
 
             try
             {
-                client.ConnectToRemote(remoteInfo[1], port);
+                client.ConnectToRemote(remoteInfo[1], int.Parse(remoteInfo[2]));
             }
             catch (Exception e)
             {
@@ -124,11 +124,11 @@ public class GameManager : MonoBehaviour
 
        
 
-        StartCoroutine(FieldInitializationCoroutine());
+       
 
         SceneManager.LoadScene(1);
 
-
+        StartCoroutine(FieldInitializationCoroutine());
 
     }
 
