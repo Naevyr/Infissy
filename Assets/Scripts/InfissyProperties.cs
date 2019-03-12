@@ -1,4 +1,5 @@
 using System.Drawing;
+using UnityEngine.UI;
 
 namespace Infissy.Properties
 {
@@ -59,6 +60,17 @@ namespace Infissy.Properties
             StructureCard,
 
         }
+
+
+        public struct ResourcesDisplayText
+        {
+            public Text Population;
+            public Text Gold;
+            public Text Resources;
+            public Text Progress;
+        }
+
+
     }
     public static class NetworkProperties
     {

@@ -23,6 +23,8 @@ public class DisplayManager : MonoBehaviour
     GameObject playerDisplayResources;
     GameObject remotePlayerDisplayResources;
 
+    public ResourcesDisplayText EnemyResources;
+    public ResourcesDisplayText AllyResources;
     
 
     public Button ChangePhaseButton;
@@ -38,17 +40,6 @@ public class DisplayManager : MonoBehaviour
     bool fieldUnitInteractable;
     bool enemyCardsSelected;
 
-
-    public void Start()
-    {
-
-        InitializeDisplayResources();
-        InitializeChangePhaseReferences();
-        ReloadAssets();
-        InitializeCards();
-
-    }
-
     public string PhaseMessage
     {
         set
@@ -61,6 +52,59 @@ public class DisplayManager : MonoBehaviour
             return phaseMessage;
         }
     }
+
+    public bool HandInteraction
+    {
+        set
+        {
+            GameObject Hand = GameObject.FindWithTag("Hand");
+            for (int i = 0; i < Hand.transform.childCount; i++)
+            {
+                Hand.transform.GetChild(i).GetComponent<Draggable>().enabled = value;
+            }
+            handInteractable = value;
+        }
+        get { return handInteractable; }
+    }
+
+    //Fix field card interaction, it is only for enemys atm
+    public bool FieldUnitInteraction
+    {
+        set
+        {
+            var fields = GameObject.FindGameObjectsWithTag("Field");
+            GameObject enemyField;
+
+            if (fields[0].name == "Field")
+            {
+                enemyField = fields[0];
+            }
+            else
+            {
+                enemyField = fields[1];
+            }
+
+            for (int i = 0; i < enemyField.transform.childCount; i++)
+            {
+                enemyField.transform.GetChild(i).GetComponent<CardMoveDraggable>().enabled = value;
+            }
+            fieldCardsInteractable = value;
+        }
+        get { return fieldCardsInteractable; }
+    }
+
+
+    public void Start()
+    {
+
+        InitializeDisplayResources();
+        InitializeChangePhaseReferences();
+        ReloadAssets();
+        InitializeCards();
+
+    }
+
+   
 
 
     //Need fixing, property will do the job
@@ -98,40 +142,8 @@ public class DisplayManager : MonoBehaviour
     }
 
 
-    public bool HandInteraction { set {
-            GameObject Hand = GameObject.FindWithTag("Hand");
-            for (int i = 0; i < Hand.transform.childCount; i++)
-            {
-                Hand.transform.GetChild(i).GetComponent<Draggable>().enabled = value;
-            }
-            handInteractable = value;
-        } get { return handInteractable; } }
-
-    public bool FieldUnitInteraction
-    {
-        set
-        {
-            var fields = GameObject.FindGameObjectsWithTag("Field");
-            GameObject enemyField;
-
-            if (fields[0].name == "Field")
-            {
-                enemyField = fields[0];
-            }
-            else
-            {
-                enemyField = fields[1];
-            }
-
-            for (int i = 0; i < enemyField.transform.childCount; i++)
-            {
-                enemyField.transform.GetChild(i).GetComponent<CardMoveDraggable>().enabled = value;
-            }
-            fieldCardsInteractable = value;
-        }
-        get { return fieldCardsInteractable; }
-    }
-
+ 
+    
     public bool EnemyCardsSelected {
 
         set
@@ -191,17 +203,60 @@ public class DisplayManager : MonoBehaviour
         //Fix display reference, use text instead of gameobject
 
         var resourcesDisplay = GameObject.FindGameObjectsWithTag("Resources");
+        foreach (var resourceField in resourcesDisplay)
+        {
+            switch (resourceField.name)
+            {
+                case "EnemyResources":
+                    for (int i = 0; i < resourceField.transform.childCount; i++)
+                    {
+                        var resourceChild = resourceField.transform.GetChild(i).GetComponent<Text>();
+                        switch (resourceChild.name)
+                        {
+                            case "EnemyTextPopulation":
+                                EnemyResources.Population = resourceChild;
+                                break;
+                            case "EnemyFirstMaterial":
+                                EnemyResources.Resources = resourceChild;
+                                break;
+                            case "EnemyTextMoney":
+                                EnemyResources.Gold = resourceChild;
+                                break;
+                        }
+                    }
+                        break;
+                case "EnemyProgress":
+                    EnemyResources.Progress = resourceField.GetComponentInChildren<Text>();
+                    break;
+                case "Resources":
+                    for (int i = 0; i < resourceField.transform.childCount; i++)
+                    {
+                        var resourceChild = resourceField.transform.GetChild(i).GetComponent<Text>();
+                        switch (resourceChild.name)
+                        {
+                            case "TextPopulation":
+                                AllyResources.Population = resourceChild;
+                                break;
+                            case "EnemyFirstMaterial":
+                                AllyResources.Resources = resourceChild;
+                                break;
+                            case "EnemyTextMoney":
+                                AllyResources.Gold = resourceChild;
+                                break;
+                        }
+                    }
+                    break;
+                case "Progress":
+                    AllyResources.Progress = resourceField.GetComponentInChildren<Text>();
+                    break;
+            }
+        }
+       
+       
+            
+            
 
-        if (resourcesDisplay[0].name == "Resources")
-        {
-            playerDisplayResources = resourcesDisplay[0];
-            remotePlayerDisplayResources = resourcesDisplay[1];
-        }
-        else
-        {
-            playerDisplayResources = resourcesDisplay[1];
-            remotePlayerDisplayResources = resourcesDisplay[0];
-        }
+       
         FieldUnitInteractionInitialize();
     }
 
@@ -527,6 +582,13 @@ public class DisplayManager : MonoBehaviour
 
     }
 
+
+
+
+
+
+
+   
   
 }
     
