@@ -1,9 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net.Sockets;
+using System.Net.WebSockets;
 using UnityEngine;
+using System.Threading;
+
 using Infissy.Framework;
+using System.Text;
+using System.Threading.Tasks;
 
 public class Client : MonoBehaviour
 {
@@ -12,72 +16,54 @@ public class Client : MonoBehaviour
     public bool IsConnected = false;
 
     private bool socketReady;
-    public TcpClient tcpClient;
-    private NetworkStream stream;
-    private StreamWriter writer;
-    private StreamReader reader;
+    public ClientWebSocket webSocketClient;
 
+    Byte[] bufferData = new byte[20];
     public Field FieldReference { get; set; }
     public List<Card> cardMovedBuffer = new List<Card>();
     public List<Card[]> targetCardBuffer = new List<Card[]>();
 
     private List<GameClient> players = new List<GameClient>();
 
-    
+
 
     //Sistemare Inizializzazione
-    public bool ConnectToRemote(string host, int port)
+    public async void ConnectToServer()
     {
-        if (socketReady)
-            return false;
+
         try
         {
-            tcpClient = new TcpClient(host, port);
+            CancellationToken cancellationToken;
+            cancellationToken.Register(new Action(OnConnectionFailed));
+            string local = "ws://127.0.0.1:24951/3b1ddef8-71fe-4b1d-af38-095ca1e04f80";
+            string heroku = "wss://infissy-backend.herokuapp.com";
+            webSocketClient = new ClientWebSocket();
+            await webSocketClient.ConnectAsync(new Uri(heroku),cancellationToken);
 
+            Debug.Log(webSocketClient.State);
             
-            stream = tcpClient.GetStream();
-            writer = new StreamWriter(stream);
-            reader = new StreamReader(stream);
 
+            CheckAvailableData();
             socketReady = true;
-            IsConnected = true;
+           
         }
         catch (Exception e)
         {
             Debug.Log("Socket Error:" + e.Message);
         }
-        return socketReady;
-    }
-    
-    public void ListenForRemote(int port)
-    {
-        TcpListener listener = new TcpListener(System.Net.IPAddress.Any,port);
-        listener.Start();
-
-        tcpClient = listener.AcceptTcpClient();
-
-        //listener.BeginAcceptTcpClient(OnClientConnected, listener) ;
-        
-        
-    }
-
-   
-    public void OnClientConnected(IAsyncResult result)
-    {
-        TcpListener listener = (TcpListener)result.AsyncState;
        
-        tcpClient = listener.EndAcceptTcpClient(result);
-
-
-
-        listener.Stop();
-        reader = new StreamReader(tcpClient.GetStream());
-        writer = new StreamWriter(tcpClient.GetStream());
-        IsConnected = true;
-        CheckAvailableData();
-        Debug.Log("Connected To Remote");
-
     }
+
+    void OnConnectionFailed(){
+
+
+
+        }
+
+ 
+   
+   
+    
 
 
     //Send message to server
@@ -85,8 +71,14 @@ public class Client : MonoBehaviour
     {
         if (!socketReady)
             return;
-        writer.WriteLine(data);
-        writer.Flush();
+
+        
+
+        ArraySegment<byte> dataSegment = new ArraySegment<byte>(Encoding.ASCII.GetBytes(data));
+        Task sendTask = webSocketClient.SendAsync(dataSegment,WebSocketMessageType.Text,true,new CancellationToken());
+        sendTask.Wait();
+        
+       
     }
 
     //Placeholder for play phase method
@@ -150,7 +142,15 @@ public class Client : MonoBehaviour
         var aData = data.Split('|');
         switch (aData[0])
         {
-            
+
+            case "SSTA":
+                Debug.Log(aData[1]);
+                if(aData[1] == "True")
+                {
+                    IsConnected = true;
+                }
+                break;
+
             case "SPLY":
 
                 var cardsPlayedIDs = aData[1].Split(':');
@@ -242,14 +242,21 @@ public class Client : MonoBehaviour
 
     }
 
-    private void CheckAvailableData()
+    private async void CheckAvailableData()
     {
-        if (socketReady && stream.DataAvailable)
+        
+        WebSocketReceiveResult asyncStatus = await webSocketClient.ReceiveAsync(new ArraySegment<byte>(bufferData), new CancellationToken(false));
+
+       
+        if ( asyncStatus.MessageType == WebSocketMessageType.Text)
         {
-            string data = reader.ReadLine();
-            if (data != null)
-                OnIncomingData(data);
+            string result = Encoding.ASCII.GetString(bufferData);
+            result = result.Replace("\0", string.Empty);
+
+            OnIncomingData(result);
         }
+
+        Array.Clear(bufferData, 0, bufferData.Length);
     }
 
     private void OnApplicationQuit()
@@ -261,15 +268,13 @@ public class Client : MonoBehaviour
     {
         CloseSocket();
     }
-    private void CloseSocket()
+    public void CloseSocket()
     {
         if (!socketReady)
         {
             return;
         }
-        writer.Close();
-        reader.Close();
-        tcpClient.Close();
+        webSocketClient.CloseAsync(WebSocketCloseStatus.NormalClosure, "ClientClosedConnection", new CancellationToken());
         socketReady = false;
     }
 

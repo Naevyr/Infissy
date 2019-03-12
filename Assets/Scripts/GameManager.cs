@@ -23,7 +23,7 @@ public class GameManager : MonoBehaviour
     
     public Field field { set; get; }
     public DBCaller DBCaller;
-
+    int selected;
     Client client;
 
 
@@ -43,91 +43,32 @@ public class GameManager : MonoBehaviour
 
     public void ConnectButton()
     {
+
         StartCoroutine(ConnectToServer());
-        
 
     }
+
 
     IEnumerator ConnectToServer()
     {
 
         
         var clientPrefabIstance = Instantiate(clientPrefab);
+        DontDestroyOnLoad(clientPrefabIstance);
         client = clientPrefabIstance.GetComponent<Client>();
 
-        var selected = GameObject.FindGameObjectWithTag("TempLabel").GetComponent<Dropdown>().value;
-        if (selected == 0)
-            clientID = 2;
-        else
-            clientID = 4;
 
-        
-   
-
-        var serverRequest = UnityWebRequest.Get("http://icanhazip.com");
-
-        yield return serverRequest.SendWebRequest();
-        string externalip = serverRequest.downloadHandler.text;
-
-        externalip = externalip.Remove(externalip.Length-2);
-
-        serverRequest = UnityWebRequest.Get("http://www.bargiua.it/Infissy/Matmak/addqueue.aspx?utente=" + clientID.ToString() + "&ip=" + externalip + "&port=" + port);
-
-        yield return serverRequest.SendWebRequest();
-
-
-        string serverInfo = "";
-
-        
-        serverRequest = UnityWebRequest.Get("http://www.bargiua.it/Infissy/Matmak/AskQueue.aspx?utente=" + clientID.ToString());
-        yield return serverRequest.SendWebRequest();
-
-        serverInfo = serverRequest.downloadHandler.text;
-
-        if (!serverInfo.Contains('#'))
-        {
-           client.ListenForRemote(port);
-        }
-        else
-        {
-            var remoteInfo = serverInfo.Split('#')[1].Split(';');
-
-            try
-            {
-                client.ConnectToRemote(remoteInfo[1], int.Parse(remoteInfo[2]));
-            }
-            catch (Exception e)
-            {
-
-                Debug.Log(e.Message);
-            }
-            
-            foreach (var item in remoteInfo)
-            {
-                Debug.Log(item);
-            }
-            serverRequest = UnityWebRequest.Get("http://www.bargiua.it/Infissy/Matmak/EndQueue.aspx?utente=" + clientID.ToString());
-            yield return serverRequest.SendWebRequest();
-            serverRequest = UnityWebRequest.Get("http://www.bargiua.it/Infissy/Matmak/EndQueue.aspx?utente=" + clientID.ToString());
-            yield return serverRequest.SendWebRequest();
-
-        }
-
-        while (!client.IsConnected)
-        {
-            yield return new WaitForSeconds(0.1f);
-        }
-
-
-
-
+        client.ConnectToServer();
 
        
+        while(!client.IsConnected)
+        {
 
-       
+            yield return new WaitForSeconds(0.5f);
+        }
 
         SceneManager.LoadScene(1);
-
+        selected =  GameObject.FindGameObjectWithTag("TempLabel").GetComponent<Dropdown>().value;
         StartCoroutine(FieldInitializationCoroutine());
 
     }
@@ -241,10 +182,10 @@ public class GameManager : MonoBehaviour
             deck2[i].SpawnEffects = cardCopy.SpawnEffects;
             CardEffect[] cardEffects = new CardEffect[3];
         }
-       
-       
+
         
-        if(client.isHost == true)
+
+        if (selected == 0)
         {
             client.FieldReference = Field.Initalize(client, Player.Initialize(new Stack<Card>(deck), 5, 500, 500, 500, true), Player.Initialize(new Stack<Card>(deck2), 5, 500, 500, 500, true));
         }
@@ -262,6 +203,7 @@ public class GameManager : MonoBehaviour
 
     private void RestartGame(Player player, Player.PlayerEventArgs args)
     {
+        client.CloseSocket();
         
         SceneManager.LoadScene(0);
         foreach(var gameObjectToDestroy in GameObject.FindGameObjectsWithTag("DontDestroyOnLoad"))
