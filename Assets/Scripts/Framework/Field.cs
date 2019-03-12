@@ -404,7 +404,7 @@ namespace Infissy.Framework
                                
                                 //Flat Value Effect     
                                 case CardEffectType.ValueIncrement:
-                                    switch (effect.EffectTarget)
+                                    switch (effectTarget)
                                     {
                                         case CardEffectTarget.AllyPopulation:
                                         case CardEffectTarget.AllyGold:
@@ -534,7 +534,7 @@ namespace Infissy.Framework
                             {
                                 //Flat Value Effect     
                                 case CardEffectType.ValueIncrement:
-                                    switch (effect.EffectTarget)
+                                    switch (effectTarget)
                                     {
                                         case CardEffectTarget.AllyPopulation:
                                         case CardEffectTarget.AllyGold:
